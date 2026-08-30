@@ -6,10 +6,10 @@
 
 ## 技术栈
 
-- Swift 6 工具链，Swift Package Manager
+- Swift 6 工具链，仓库内 `swiftc` 构建脚本
 - AppKit + SwiftUI
 - CoreGraphics 窗口列表
-- XCTest / Swift Testing
+- 无依赖 Swift 测试运行器
 
 ## 目录边界
 
@@ -32,8 +32,8 @@
 
 ## 验证
 
-- 单元测试：`swift test`
-- Release 构建：`swift build -c release`
+- 单元测试：`./scripts/test.sh`
+- Release 构建：`./scripts/build.sh release`
 - 打包：`./scripts/package-app.sh`
 - 只读联调：`./scripts/check-live.sh`
 - 最终必须在真实 ChatGPT 前台/后台切换中检查显示、跟随和隐藏行为。
@@ -43,4 +43,3 @@
 - 使用 `main` 分支。
 - 提交前检查 `git status`、最终 Diff 和完整验证结果。
 - 只提交本应用文件，不推送、不 rebase、不重写历史。
-

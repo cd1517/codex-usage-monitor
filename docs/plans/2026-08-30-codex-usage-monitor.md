@@ -6,19 +6,20 @@
 
 **Architecture:** A testable core library normalizes Codex App Server responses and computes ChatGPT window selection and overlay geometry. A menu-bar AppKit executable observes frontmost-application changes, polls usage, and presents a nonactivating SwiftUI-backed `NSPanel` anchored to the ChatGPT window.
 
-**Tech Stack:** Swift Package Manager, Swift 6 toolchain in Swift 5 language mode, AppKit, SwiftUI, CoreGraphics, XCTest, shell packaging.
+**Tech Stack:** Swift 6 toolchain, repository-local `swiftc` scripts, AppKit, SwiftUI, CoreGraphics, dependency-free Swift tests, shell packaging. SwiftPM is not the verification path because the installed Command Line Tools has a mismatched `PackageDescription` module and library.
 
 ---
 
 ### Task 1: Usage data contract
 
 **Files:**
-- Create: `Package.swift`
+- Create: `Package.swift` (metadata for a repaired SwiftPM installation)
+- Create: `scripts/test.sh`
 - Create: `Tests/CodexUsageMonitorCoreTests/UsageSnapshotTests.swift`
 - Create: `Sources/CodexUsageMonitorCore/UsageSnapshot.swift`
 
 1. Add failing tests for remaining-percent calculation, clamping, missing windows and reset timestamps.
-2. Run `swift test --filter UsageSnapshotTests` and confirm RED.
+2. Run `./scripts/test.sh UsageSnapshotTests` and confirm RED.
 3. Implement the smallest Codable transport structs and normalized display model.
 4. Run the focused tests and confirm GREEN.
 
