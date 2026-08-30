@@ -43,11 +43,21 @@ public struct RateLimitSnapshot: Codable, Equatable, Sendable {
     }
 }
 
+public struct RateLimitResetCredit: Codable, Equatable, Sendable {
+    public let expiresAt: TimeInterval?
+
+    public init(expiresAt: TimeInterval?) {
+        self.expiresAt = expiresAt
+    }
+}
+
 public struct RateLimitResetCredits: Codable, Equatable, Sendable {
     public let availableCount: Int
+    public let credits: [RateLimitResetCredit]?
 
-    public init(availableCount: Int) {
+    public init(availableCount: Int, credits: [RateLimitResetCredit]? = nil) {
         self.availableCount = availableCount
+        self.credits = credits
     }
 }
 
@@ -72,6 +82,7 @@ public struct UsageDisplaySnapshot: Equatable, Sendable {
     public let windows: [UsageWindow]
     public let credits: CreditsSnapshot?
     public let resetCreditsAvailable: Int?
+    public let resetCreditExpiresAt: Date?
 
     public init(response: AppServerRateLimitsResponse) {
         planType = response.rateLimits.planType
@@ -81,6 +92,10 @@ public struct UsageDisplaySnapshot: Equatable, Sendable {
         ]
         credits = response.rateLimits.credits
         resetCreditsAvailable = response.rateLimitResetCredits?.availableCount
+        resetCreditExpiresAt = response.rateLimitResetCredits?.credits?
+            .compactMap(\.expiresAt)
+            .min()
+            .map(Date.init(timeIntervalSince1970:))
     }
 
     private static func makeWindow(label: String, source: RateLimitWindow?) -> UsageWindow {
