@@ -60,9 +60,13 @@ public func convertWindowBounds(_ bounds: CGRect, displays: [DisplayDescriptor])
 }
 
 public func overlayFrame(chatGPTWindow: CGRect, panelSize: CGSize) -> CGRect {
-    CGRect(
-        x: chatGPTWindow.maxX - panelSize.width - 18,
-        y: chatGPTWindow.maxY - panelSize.height - 78,
+    let windowInset: CGFloat = 12
+    let titleBarTopInset: CGFloat = 16
+    let trailingControlsWidth: CGFloat = 220
+    let preferredX = chatGPTWindow.maxX - trailingControlsWidth - panelSize.width
+    return CGRect(
+        x: max(chatGPTWindow.minX + windowInset, preferredX),
+        y: chatGPTWindow.maxY - titleBarTopInset - panelSize.height,
         width: panelSize.width,
         height: panelSize.height
     )

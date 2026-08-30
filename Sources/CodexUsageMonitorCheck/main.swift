@@ -9,7 +9,8 @@ struct CodexUsageMonitorCheck {
             let output: [String: Any] = [
                 "planType": jsonValue(usage.planType),
                 "remainingPercent": usage.windows.map { jsonValue($0.remainingPercent) },
-                "resetCreditsAvailable": jsonValue(usage.resetCreditsAvailable)
+                "resetCreditsAvailable": jsonValue(usage.resetCreditsAvailable),
+                "resetCreditExpiresAt": jsonValue(usage.resetCreditExpiresAt?.timeIntervalSince1970)
             ]
             let data = try JSONSerialization.data(withJSONObject: output, options: [.sortedKeys])
             print(String(decoding: data, as: UTF8.self))

@@ -8,7 +8,10 @@ func runUsageSnapshotTests() throws {
             secondary: RateLimitWindow(usedPercent: 37, windowDurationMins: 10_080, resetsAt: 1_788_645_762),
             credits: CreditsSnapshot(hasCredits: false, unlimited: false, balance: "0")
         ),
-        rateLimitResetCredits: RateLimitResetCredits(availableCount: 1)
+        rateLimitResetCredits: RateLimitResetCredits(
+            availableCount: 1,
+            credits: [RateLimitResetCredit(expiresAt: 1_789_000_000)]
+        )
     )
     let usage = UsageDisplaySnapshot(response: response)
 
@@ -18,6 +21,7 @@ func runUsageSnapshotTests() throws {
     try expect(usage.windows[0].resetsAt == Date(timeIntervalSince1970: 1_788_117_494), "reset epoch should convert to Date")
     try expect(usage.credits?.balance == "0", "credit balance should be preserved")
     try expect(usage.resetCreditsAvailable == 1, "reset credit count should be preserved")
+    try expect(usage.resetCreditExpiresAt == Date(timeIntervalSince1970: 1_789_000_000), "earliest reset credit expiry should be exposed")
 
     let invalid = AppServerRateLimitsResponse(
         rateLimits: RateLimitSnapshot(
