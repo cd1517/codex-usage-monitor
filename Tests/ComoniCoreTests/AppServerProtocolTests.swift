@@ -20,13 +20,14 @@ func runAppServerProtocolTests() throws {
     let notification = try session.receive(line: Data(#"{"method":"remoteControl/status/changed","params":{"status":"disabled"}}"#.utf8))
     try expect(notification == .none, "unrelated notifications should be ignored")
 
-    let rateLine = Data(#"{"id":2,"result":{"rateLimits":{"planType":"plus","primary":{"usedPercent":12,"windowDurationMins":300,"resetsAt":1788117494},"secondary":{"usedPercent":34,"windowDurationMins":10080,"resetsAt":1788645762},"credits":{"hasCredits":false,"unlimited":false,"balance":"0"}},"rateLimitResetCredits":{"availableCount":1}}}"#.utf8)
+    let rateLine = Data(#"{"id":2,"result":{"rateLimits":{"planType":"plus","primary":{"usedPercent":12,"windowDurationMins":300,"resetsAt":1788117494},"secondary":{"usedPercent":34,"windowDurationMins":10080,"resetsAt":1788645762},"credits":{"hasCredits":false,"unlimited":false,"balance":"0"}},"rateLimitResetCredits":{"availableCount":1,"credits":[{"expiresAt":1789000000}]}}}"#.utf8)
     let completed = try session.receive(line: rateLine)
     guard case let .complete(response) = completed else {
         throw TestFailure(description: "matching rate-limit response should complete the session")
     }
     try expect(response.rateLimits.primary?.usedPercent == 12, "primary usage should decode")
     try expect(response.rateLimitResetCredits?.availableCount == 1, "reset credit summary should decode")
+    try expect(response.rateLimitResetCredits?.credits?.first?.expiresAt == 1_789_000_000, "reset credit expiry should decode")
 
     var failingSession = AppServerProtocolSession()
     _ = try failingSession.initialRequest()
