@@ -1,0 +1,21 @@
+# Codex 用量浮窗
+
+这是一个独立的 macOS 菜单栏应用，不是插件，也不需要在 Codex 输入任何指令。
+
+应用运行后：
+
+- ChatGPT.app 位于前台时，用量卡片自动显示在窗口右上方。
+- 切换到其他应用时，卡片立即隐藏。
+- 卡片不接收键盘或鼠标焦点，不影响 Codex 输入。
+- 用量每 60 秒刷新；也可点击菜单栏的闪电图标，选择“刷新用量”。
+- 退出时点击菜单栏闪电图标，选择“退出 Codex 用量浮窗”。
+
+## 本地验证
+
+```bash
+./scripts/test.sh
+./scripts/check-live.sh
+./scripts/package-app.sh
+```
+
+打包产物位于 `dist/Codex Usage Monitor.app`。应用只调用 ChatGPT 内置 Codex 的只读 `account/rateLimits/read`，不会修改 ChatGPT、账户、额度或 Codex 配置。
