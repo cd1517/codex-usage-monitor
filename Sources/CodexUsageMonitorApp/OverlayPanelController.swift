@@ -73,7 +73,7 @@ final class OverlayPanelController {
         detailHostingView.onHoverChange = { [weak self] isHovering in
             self?.handleDetailHoverChange(isHovering)
         }
-        presentation.onMetricsChange = { [weak self] in
+        presentation.onFontSizeChange = { [weak self] in
             self?.updatePanelFramesForCurrentMetrics()
         }
         presentation.onMenuTrackingChange = { [weak self] isOpen in
