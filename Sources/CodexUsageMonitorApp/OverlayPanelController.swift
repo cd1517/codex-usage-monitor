@@ -8,30 +8,30 @@ import CodexUsageMonitorCore
 @MainActor
 final class OverlayPanelController {
     static let compactSize = CGSize(width: 220, height: 30)
-    static let expandedSize = CGSize(width: 300, height: 132)
+    static let expandedSize = CGSize(width: 310, height: 136)
 
     private let panel: NSPanel
-    private let hoverRelay: HoverRelay
+    private let presentation: OverlayPresentation
     private var chatGPTWindow: CGRect?
     private var isExpanded = false
+    private var pendingCollapse: DispatchWorkItem?
 
     init(viewModel: UsageViewModel) {
-        let hoverRelay = HoverRelay()
-        self.hoverRelay = hoverRelay
+        let presentation = OverlayPresentation()
+        self.presentation = presentation
         panel = NonactivatingPanel(
             contentRect: CGRect(origin: .zero, size: Self.compactSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-        panel.contentView = NSHostingView(
+        let hostingView = HoverTrackingHostingView(
             rootView: UsageView(
                 viewModel: viewModel,
-                onHoverChange: { isHovering in
-                    hoverRelay.handler?(isHovering)
-                }
+                presentation: presentation
             )
         )
+        panel.contentView = hostingView
         panel.isOpaque = true
         panel.backgroundColor = .windowBackgroundColor
         panel.hasShadow = false
@@ -44,8 +44,8 @@ final class OverlayPanelController {
         panel.isMovable = false
         panel.isReleasedWhenClosed = false
 
-        hoverRelay.handler = { [weak self] isHovering in
-            self?.setExpanded(isHovering)
+        hostingView.onHoverChange = { [weak self] isHovering in
+            self?.handleHoverChange(isHovering)
         }
     }
 
@@ -59,7 +59,10 @@ final class OverlayPanelController {
     }
 
     func hide() {
+        pendingCollapse?.cancel()
+        pendingCollapse = nil
         isExpanded = false
+        presentation.isExpanded = false
         panel.orderOut(nil)
     }
 
@@ -73,19 +76,72 @@ final class OverlayPanelController {
         }
         isExpanded = expanded
         let frame = overlayFrame(chatGPTWindow: chatGPTWindow, panelSize: currentSize)
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.14
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            panel.animator().setFrame(frame, display: true)
+        if expanded {
+            panel.setFrame(frame, display: true)
+            presentation.isExpanded = true
+        } else {
+            presentation.isExpanded = false
+            panel.setFrame(frame, display: true)
         }
     }
-}
 
-private final class HoverRelay {
-    var handler: ((Bool) -> Void)?
+    private func handleHoverChange(_ isHovering: Bool) {
+        pendingCollapse?.cancel()
+        pendingCollapse = nil
+
+        if isHovering {
+            setExpanded(true)
+            return
+        }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            guard let self else {
+                return
+            }
+            self.pendingCollapse = nil
+            guard shouldCollapseOverlay(
+                pointerLocation: NSEvent.mouseLocation,
+                panelFrame: self.panel.frame
+            ) else {
+                return
+            }
+            self.setExpanded(false)
+        }
+        pendingCollapse = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08, execute: workItem)
+    }
 }
 
 private final class NonactivatingPanel: NSPanel {
     override var canBecomeKey: Bool { false }
     override var canBecomeMain: Bool { false }
+}
+
+private final class HoverTrackingHostingView<Content: View>: NSHostingView<Content> {
+    var onHoverChange: ((Bool) -> Void)?
+
+    private var hoverTrackingArea: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let hoverTrackingArea {
+            removeTrackingArea(hoverTrackingArea)
+        }
+        let trackingArea = NSTrackingArea(
+            rect: .zero,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
+        hoverTrackingArea = trackingArea
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        onHoverChange?(true)
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        onHoverChange?(false)
+    }
 }
