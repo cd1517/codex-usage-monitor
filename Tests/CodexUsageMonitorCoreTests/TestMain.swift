@@ -5,6 +5,7 @@ struct TestMain {
     static func main() {
         let suites: [(String, () throws -> Void)] = [
             ("UsageSnapshotTests", runUsageSnapshotTests),
+            ("OverlayMetricsTests", runOverlayMetricsTests),
             ("WindowGeometryTests", runWindowGeometryTests),
             ("AppServerProtocolTests", runAppServerProtocolTests),
             ("ExecutableResolverTests", runExecutableResolverTests)
