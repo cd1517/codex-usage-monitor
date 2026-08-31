@@ -34,7 +34,7 @@ public struct OverlayMetrics: Equatable, Sendable {
         )
     }
 
-    public var detailGap: CGFloat { scaled(4) }
+    public var detailGap: CGFloat { scaled(12) }
 
     public var compactSpacing: CGFloat { scaled(7) }
     public var boltHorizontalPadding: CGFloat { scaled(4) }
@@ -46,6 +46,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     public var iconWidth: CGFloat { scaled(15) }
     public var iconHeight: CGFloat { scaled(17) }
     public var menuButtonSize: CGFloat { max(22, scaled(22)) }
+    public var compactCornerRadius: CGFloat { compactSize.height / 2 }
     public var cornerRadius: CGFloat { scaled(14) }
     public var detailSpacing: CGFloat { scaled(10) }
     public var detailValueSpacing: CGFloat { scaled(16) }

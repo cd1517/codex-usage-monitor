@@ -43,14 +43,18 @@ func runOverlayMetricsTests() throws {
         defaultMetrics.detailPanelSize == CGSize(width: 278, height: 154),
         "the detail window should exclude the 32pt compact strip"
     )
-    try expect(defaultMetrics.detailGap == 4, "the detail window should sit 4pt below the strip")
-    let compactFrame = CGRect(x: 802, y: 854, width: 278, height: 32)
+    try expect(
+        defaultMetrics.compactCornerRadius == 16,
+        "the compact strip should use a pill radius matching the native Share control"
+    )
+    try expect(defaultMetrics.detailGap == 12, "the detail window should align with the native title-bar bottom")
+    let compactFrame = CGRect(x: 802, y: 860, width: 278, height: 32)
     let expandedFrame = overlayFrame(
         preservingTopRightOf: compactFrame,
         panelSize: defaultMetrics.expandedSize
     )
     try expect(
-        expandedFrame == CGRect(x: 802, y: 700, width: 278, height: 186),
+        expandedFrame == CGRect(x: 802, y: 706, width: 278, height: 186),
         "the expanded panel should grow left and down from the compact top-right anchor"
     )
     try expect(
