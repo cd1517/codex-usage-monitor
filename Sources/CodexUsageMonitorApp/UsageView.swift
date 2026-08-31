@@ -7,40 +7,32 @@ import CodexUsageMonitorCore
 
 struct UsageView: View {
     @ObservedObject var viewModel: UsageViewModel
-    let onHoverChange: (Bool) -> Void
-
-    @State private var isExpanded = false
+    @ObservedObject var presentation: OverlayPresentation
 
     var body: some View {
         VStack(spacing: 0) {
             compactStrip
                 .frame(height: 30)
 
-            if isExpanded {
+            if presentation.isExpanded {
                 Divider()
                     .padding(.horizontal, 10)
                 detailRows
             }
         }
         .frame(
-            width: isExpanded ? 300 : 220,
-            height: isExpanded ? 132 : 30,
+            width: presentation.isExpanded ? 310 : 220,
+            height: presentation.isExpanded ? 136 : 30,
             alignment: .top
         )
         .background(Color(nsColor: .windowBackgroundColor))
         .contentShape(Rectangle())
-        .onHover { isHovering in
-            withAnimation(.easeInOut(duration: 0.14)) {
-                isExpanded = isHovering
-            }
-            onHoverChange(isHovering)
-        }
     }
 
     private var compactStrip: some View {
         HStack(spacing: 5) {
             Image(systemName: "bolt.fill")
-                .font(.system(size: 11, weight: .regular))
+                .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(.secondary)
                 .frame(width: 15, height: 17)
 
@@ -70,7 +62,7 @@ struct UsageView: View {
                 .fontWeight(.semibold)
                 .monospacedDigit()
         }
-        .font(.system(size: 12.5, weight: .regular))
+        .font(.system(size: 14, weight: .regular))
         .fixedSize()
     }
 
@@ -92,7 +84,7 @@ struct UsageView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            .font(.system(size: 12))
+            .font(.system(size: 13))
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
@@ -108,7 +100,7 @@ struct UsageView: View {
                 .fontWeight(.medium)
                 .monospacedDigit()
         }
-        .font(.system(size: 12))
+        .font(.system(size: 13))
     }
 
     private var windows: [UsageWindow] {
@@ -131,4 +123,9 @@ struct UsageView: View {
         }
         return "有效期至 \(date.formatted(.dateTime.month().day().hour().minute()))"
     }
+}
+
+@MainActor
+final class OverlayPresentation: ObservableObject {
+    @Published var isExpanded = false
 }

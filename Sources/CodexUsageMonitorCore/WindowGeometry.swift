@@ -72,6 +72,10 @@ public func overlayFrame(chatGPTWindow: CGRect, panelSize: CGSize) -> CGRect {
     )
 }
 
+public func shouldCollapseOverlay(pointerLocation: CGPoint, panelFrame: CGRect) -> Bool {
+    !panelFrame.contains(pointerLocation)
+}
+
 private extension CGRect {
     var area: CGFloat {
         isNull ? 0 : width * height

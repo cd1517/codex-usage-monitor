@@ -40,4 +40,17 @@ func runWindowGeometryTests() throws {
         panelSize: CGSize(width: 220, height: 30)
     )
     try expect(narrowFrame.minX == 112, "strip should stay inside a narrow ChatGPT window")
+
+    let expandedFrame = overlayFrame(
+        chatGPTWindow: CGRect(x: 100, y: 100, width: 1200, height: 800),
+        panelSize: CGSize(width: 310, height: 136)
+    )
+    try expect(
+        !shouldCollapseOverlay(pointerLocation: CGPoint(x: frame.midX, y: frame.midY), panelFrame: expandedFrame),
+        "a transient tracking exit must not collapse while the pointer is still inside the expanded panel"
+    )
+    try expect(
+        shouldCollapseOverlay(pointerLocation: CGPoint(x: expandedFrame.maxX + 1, y: expandedFrame.midY), panelFrame: expandedFrame),
+        "the panel should collapse after the pointer actually leaves its frame"
+    )
 }
