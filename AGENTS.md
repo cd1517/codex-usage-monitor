@@ -2,7 +2,7 @@
 
 ## 目标
 
-构建一个独立的 macOS 菜单栏应用：仅当 `ChatGPT.app` 位于前台时，在其主窗口对话区右上方显示 Codex 剩余用量浮窗；切换到其他应用后立即隐藏。
+构建一个独立的 macOS 菜单栏应用：在 `ChatGPT.app` 可见主窗口的对话区右上方显示 Codex 剩余用量浮窗；ChatGPT 位于后台时仍保持附着，但允许其他应用窗口自然遮挡；ChatGPT 最小化、关闭或退出后隐藏。
 
 ## 技术栈
 
@@ -28,6 +28,7 @@
 - 不修改 `ChatGPT.app`、`app.asar`、系统配置或 Codex 配置。
 - 不申请辅助功能权限；窗口位置只使用前台应用信息和 CoreGraphics 可见窗口边界。
 - 浮窗不得抢走 ChatGPT 输入焦点。
+- 浮窗使用普通窗口层级，不得跨应用强制置顶。
 - 缺少数据时显示“不可用”，不得估算或伪造剩余量。
 
 ## 验证
@@ -36,7 +37,7 @@
 - Release 构建：`./scripts/build.sh release`
 - 打包：`./scripts/package-app.sh`
 - 只读联调：`./scripts/check-live.sh`
-- 最终必须在真实 ChatGPT 前台/后台切换中检查显示、跟随和隐藏行为。
+- 最终必须在真实 ChatGPT 前台/后台切换中检查附着、遮挡、跟随和隐藏行为。
 
 ## Git
 
