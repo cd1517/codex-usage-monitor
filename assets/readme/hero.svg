@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="440" viewBox="0 0 1200 440"
+     role="img" aria-labelledby="title desc">
+  <title id="title">Codex Usage Monitor</title>
+  <desc id="desc">macOS 菜单栏用量浮窗，将 Codex 的 5 小时和 1 周剩余额度显示在 ChatGPT 对话区旁，并在悬停时展开重置详情。</desc>
+
+  <rect width="1200" height="440" rx="28" fill="#0C0D10"/>
+
+  <g id="title-block" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <g transform="translate(60 54)">
+      <circle cx="8" cy="8" r="8" fill="#2997FF"/>
+      <path d="M10.5 1.5 5 9h4l-1.5 5.5L13 7h-4z" fill="#FFFFFF"/>
+      <text x="28" y="14" fill="#8B949E" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" letter-spacing="2">MACOS MENU BAR UTILITY</text>
+    </g>
+
+    <text x="60" y="138" fill="#F5F7FA" font-size="58" font-weight="720">Codex Usage</text>
+    <text x="60" y="202" fill="#F5F7FA" font-size="58" font-weight="720">Monitor</text>
+
+    <text x="60" y="258" fill="#D0D7DE" font-size="27" font-weight="560">把剩余额度，放在对话旁边。</text>
+    <text x="60" y="298" fill="#8B949E" font-size="20">不抢焦点 · 自动跟随 · 悬停展开详情</text>
+
+    <g transform="translate(60 342)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">
+      <rect width="140" height="38" rx="19" fill="#171A1F" stroke="#30363D"/>
+      <text x="70" y="25" fill="#D0D7DE" text-anchor="middle">macOS 14+</text>
+      <rect x="152" width="128" height="38" rx="19" fill="#171A1F" stroke="#30363D"/>
+      <text x="216" y="25" fill="#D0D7DE" text-anchor="middle">READ ONLY</text>
+      <rect x="292" width="104" height="38" rx="19" fill="#171A1F" stroke="#30363D"/>
+      <text x="344" y="25" fill="#D0D7DE" text-anchor="middle">SWIFT</text>
+    </g>
+  </g>
+
+  <g id="interface-proof" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <rect x="644" y="36" width="500" height="368" rx="22" fill="#060708" stroke="#30363D" stroke-width="2"/>
+    <path d="M644 88h500" stroke="#21252B"/>
+    <circle cx="676" cy="62" r="7" fill="#FF5F57"/>
+    <circle cx="700" cy="62" r="7" fill="#FEBB2E"/>
+    <circle cx="724" cy="62" r="7" fill="#28C840"/>
+    <text x="894" y="69" fill="#8B949E" font-size="18" text-anchor="middle">ChatGPT</text>
+    <text x="1120" y="69" fill="#626B76" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16" text-anchor="end">UI PREVIEW</text>
+
+    <g id="conversation" opacity="0.58">
+      <circle cx="686" cy="134" r="15" fill="#24282E"/>
+      <rect x="716" y="122" width="154" height="11" rx="5.5" fill="#30363D"/>
+      <rect x="716" y="143" width="106" height="9" rx="4.5" fill="#24282E"/>
+      <rect x="686" y="194" width="294" height="10" rx="5" fill="#24282E"/>
+      <rect x="686" y="216" width="232" height="10" rx="5" fill="#24282E"/>
+      <rect x="686" y="238" width="266" height="10" rx="5" fill="#24282E"/>
+      <rect x="686" y="334" width="416" height="46" rx="18" fill="#111418" stroke="#24282E"/>
+    </g>
+
+    <g id="compact-usage-strip" transform="translate(824 102)">
+      <rect width="296" height="44" rx="14" fill="#1A1D22" stroke="#3A4048"/>
+      <text x="15" y="28" fill="#8B949E" font-size="18">5小时</text>
+      <text x="71" y="28" fill="#F5F7FA" font-size="20" font-weight="650">82%</text>
+      <path d="M126 10 116 24h8l-3 10 11-16h-8z" fill="#2997FF"/>
+      <text x="150" y="28" fill="#8B949E" font-size="18">1周</text>
+      <text x="187" y="28" fill="#F5F7FA" font-size="20" font-weight="650">46%</text>
+      <circle cx="257" cy="22" r="2.2" fill="#8B949E"/>
+      <circle cx="266" cy="22" r="2.2" fill="#8B949E"/>
+      <circle cx="275" cy="22" r="2.2" fill="#8B949E"/>
+    </g>
+
+    <g id="hover-detail" transform="translate(824 162)">
+      <rect x="4" y="7" width="292" height="160" rx="16" fill="#000000" opacity="0.30"/>
+      <rect width="296" height="160" rx="16" fill="#1C1F24" stroke="#3A4048"/>
+      <g font-size="18">
+        <text x="18" y="32" fill="#8B949E">5 小时重置</text>
+        <text x="278" y="32" fill="#F5F7FA" text-anchor="end" font-weight="560">今天 18:30</text>
+        <text x="18" y="66" fill="#8B949E">1 周重置</text>
+        <text x="278" y="66" fill="#F5F7FA" text-anchor="end" font-weight="560">9月 4日</text>
+        <path d="M18 82h260" stroke="#3A4048"/>
+        <text x="18" y="110" fill="#8B949E">限额重置</text>
+        <text x="278" y="110" fill="#F5F7FA" text-anchor="end" font-weight="650">可用 1 次</text>
+        <text x="18" y="144" fill="#8B949E">有效期至</text>
+        <text x="278" y="144" fill="#F5F7FA" text-anchor="end" font-weight="560">9月 30日</text>
+      </g>
+    </g>
+
+    <g id="hover-cue" transform="translate(680 286)">
+      <path d="M0 18h108c24 0 30-20 54-20h5" fill="none" stroke="#2997FF" stroke-width="2" stroke-dasharray="5 6"/>
+      <circle cx="168" cy="-2" r="4" fill="#2997FF"/>
+      <text x="0" y="47" fill="#2997FF" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">HOVER TO REVEAL</text>
+    </g>
+  </g>
+</svg>
