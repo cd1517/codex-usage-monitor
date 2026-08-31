@@ -10,6 +10,8 @@
     <string>CodexUsageMonitor</string>
     <key>CFBundleIdentifier</key>
     <string>com.hey.codex-usage-monitor</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
