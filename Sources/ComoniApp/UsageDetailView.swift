@@ -79,14 +79,14 @@ struct UsageDetailView: View {
             Text(label)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.72)
+                .fixedSize(horizontal: true, vertical: false)
             Color.clear
                 .frame(width: metrics.detailValueSpacing)
             Text(value)
                 .fontWeight(valueWeight)
                 .monospacedDigit()
                 .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
+                .minimumScaleFactor(0.8)
         }
         .font(.system(size: metrics.fontSize))
     }

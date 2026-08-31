@@ -55,6 +55,10 @@ func runOverlayMetricsTests() throws {
         "the compact strip should use the same rounded-rectangle radius as Share"
     )
     try expect(defaultMetrics.detailGap == 12, "the detail window should align with the native title-bar bottom")
+    try expect(
+        defaultMetrics.detailHorizontalPadding == 12 && defaultMetrics.detailValueSpacing == 12,
+        "detail chrome must leave the label column wide enough for full-size labels"
+    )
     let compactFrame = CGRect(x: 802, y: 856, width: 278, height: 36)
     let expandedFrame = overlayFrame(
         preservingTopRightOf: compactFrame,
