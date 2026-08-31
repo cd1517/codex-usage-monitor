@@ -21,3 +21,7 @@
 ```
 
 打包产物位于 `dist/Codex Usage Monitor.app`。应用只调用 ChatGPT 内置 Codex 的只读 `account/rateLimits/read`，不会修改 ChatGPT、账户、额度或 Codex 配置。
+
+## 许可证
+
+[MIT](LICENSE)
