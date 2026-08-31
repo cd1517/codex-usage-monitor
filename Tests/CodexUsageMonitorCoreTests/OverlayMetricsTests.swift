@@ -56,8 +56,8 @@ func runOverlayMetricsTests() throws {
     )
     try expect(defaultMetrics.detailGap == 12, "the detail window should align with the native title-bar bottom")
     try expect(
-        defaultMetrics.detailHorizontalPadding == 12 && defaultMetrics.detailValueSpacing == 12,
-        "detail chrome must leave the label column wide enough for full-size labels"
+        defaultMetrics.detailHorizontalPadding == 10 && defaultMetrics.detailValueSpacing == 8,
+        "detail chrome must leave the label and value columns wide enough for full-size text"
     )
     let compactFrame = CGRect(x: 802, y: 856, width: 278, height: 36)
     let expandedFrame = overlayFrame(
