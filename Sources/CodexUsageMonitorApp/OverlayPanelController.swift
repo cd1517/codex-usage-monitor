@@ -109,23 +109,24 @@ final class OverlayPanelController {
         if expanded {
             panel.hasShadow = true
             panel.invalidateShadow()
+            presentation.isExpanded = true
         }
 
-        withAnimation(.easeInOut(duration: Self.morphDuration)) {
-            presentation.isExpanded = expanded
-        }
         NSAnimationContext.runAnimationGroup { context in
             context.duration = Self.morphDuration
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             panel.animator().setFrame(frame, display: true)
         } completionHandler: { [weak self] in
-            guard let self else {
-                return
+            MainActor.assumeIsolated {
+                guard let self, self.isExpanded == expanded else {
+                    return
+                }
+                if !expanded {
+                    self.presentation.isExpanded = false
+                    self.panel.hasShadow = false
+                }
+                self.panel.invalidateShadow()
             }
-            if !expanded {
-                self.panel.hasShadow = false
-            }
-            self.panel.invalidateShadow()
         }
     }
 
