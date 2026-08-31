@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Codex Usage Monitor：将 Codex 剩余用量显示在 ChatGPT 对话区旁的 macOS 菜单栏应用">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Codex Usage Monitor：将 Codex 剩余用量横条贴在 ChatGPT 标题栏，并在横条下方展开详情窗口">
 </p>
 
 <p align="center">
@@ -10,15 +10,15 @@
   <a href="#本地开发">本地开发</a>
 </p>
 
-Codex Usage Monitor 是一个独立的 macOS 菜单栏应用。它把 Codex 的 **5 小时**与**1 周**剩余用量贴在 ChatGPT 对话区右上方，无需打开设置，也不会抢走输入焦点。
+Codex Usage Monitor 是一个独立的 macOS 菜单栏应用。它把 Codex 的 **5 小时**与**1 周**剩余用量以横条形式贴在 ChatGPT 标题栏上；悬停横条时，详情窗口从横条下方弹出。无需打开设置，也不会抢走输入焦点。
 
 ## 界面如何工作
 
-默认只显示一条紧凑的用量横条；悬停后展开详情，包括两个用量窗口的重置时间、可用限额重置次数和有效期。右侧菜单可将字号调整为 `14–20pt`。
+ChatGPT 标题栏默认只显示一条紧凑的用量横条；悬停横条时，其下方弹出详情窗口，包括两个用量窗口的重置时间、可用限额重置次数和有效期。横条右侧菜单可将字号调整为 `14–20pt`。
 
 | ChatGPT 状态 | 浮窗行为 |
 | --- | --- |
-| 主窗口可见且位于前台 | 附着在对话区右上方，保持清晰可见 |
+| 主窗口可见且位于前台 | 横条附着在标题栏，详情窗口在横条下方弹出 |
 | 切换到其他应用 | 继续跟随 ChatGPT 窗口，但允许其他窗口自然遮挡 |
 | 主窗口最小化、关闭或 ChatGPT 退出 | 自动隐藏 |
 
@@ -44,7 +44,7 @@ open "/Applications/Codex Usage Monitor.app"
 
 从 [Releases](https://github.com/cd1517/codex-usage-monitor/releases/latest) 下载 DMG，将 `Codex Usage Monitor.app` 拖入「应用程序」。
 
-启动 ChatGPT 并保持主窗口可见，浮窗会自动出现。Codex 数据暂时不可读取时，界面会明确显示「不可用」，不会估算剩余额度。
+启动 ChatGPT 并保持主窗口可见，用量横条会自动贴在标题栏上。Codex 数据暂时不可读取时，界面会明确显示「不可用」，不会估算剩余额度。
 
 ## 只读与隐私边界
 
