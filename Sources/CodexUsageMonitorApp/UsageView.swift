@@ -62,7 +62,7 @@ struct UsageView: View {
                 .fontWeight(.semibold)
                 .monospacedDigit()
         }
-        .font(.system(size: 16, weight: .regular))
+        .font(.system(size: 18, weight: .regular))
         .fixedSize()
     }
 
@@ -84,7 +84,7 @@ struct UsageView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            .font(.system(size: 16))
+            .font(.system(size: 18))
         }
         .padding(.horizontal, 12)
         .padding(.top, 8)
@@ -100,7 +100,7 @@ struct UsageView: View {
                 .fontWeight(.medium)
                 .monospacedDigit()
         }
-        .font(.system(size: 16))
+        .font(.system(size: 18))
     }
 
     private var windows: [UsageWindow] {
