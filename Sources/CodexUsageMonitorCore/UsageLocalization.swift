@@ -112,7 +112,7 @@ public struct UsageLocalization: Equatable, Sendable {
         case "hi":
             return ["5 घंटे", "1 सप्ताह", "5 घंटे रीसेट", "साप्ताहिक रीसेट", "रीसेट क्रेडिट", "मान्य अवधि", "बार", "उपलब्ध नहीं", "अज्ञात", ""]
         default:
-            return ["5h", "1wk", "5-hour reset", "1-week reset", "Reset credits", "Valid until", "times", "Unavailable", "Unknown", ""]
+            return ["5h", "1wk", "5h reset", "1wk reset", "Reset credits", "Valid until", "times", "Unavailable", "Unknown", ""]
         }
     }
 
