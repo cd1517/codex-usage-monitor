@@ -84,16 +84,16 @@ func runWindowGeometryTests() throws {
 
     let detailFrame = detailOverlayFrame(
         compactFrame: frame,
-        detailSize: CGSize(width: 278, height: 170),
+        detailSize: CGSize(width: 278, height: 154),
         gap: 4
     )
     try expect(
-        detailFrame == CGRect(x: 802, y: 680, width: 278, height: 170),
+        detailFrame == CGRect(x: 802, y: 696, width: 278, height: 154),
         "the independent detail window should align right and sit below the fixed strip"
     )
     let collapsedDetailFrame = collapsedDetailOverlayFrame(
         compactFrame: frame,
-        detailSize: CGSize(width: 278, height: 170),
+        detailSize: CGSize(width: 278, height: 154),
         gap: 4
     )
     try expect(

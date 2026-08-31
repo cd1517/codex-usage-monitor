@@ -36,11 +36,16 @@ struct UsageDetailView: View {
     }
 
     private var detailRows: some View {
-        VStack(spacing: metrics.detailSpacing) {
+        Grid(
+            alignment: .leading,
+            horizontalSpacing: 0,
+            verticalSpacing: metrics.detailSpacing
+        ) {
             detailRow(label: "5 小时重置", value: dateText(windows[0].resetsAt))
             detailRow(label: "1 周重置", value: dateText(windows[1].resetsAt))
 
             Divider()
+                .gridCellColumns(3)
 
             detailRow(
                 label: "重置额度",
@@ -59,16 +64,15 @@ struct UsageDetailView: View {
         value: String,
         valueWeight: Font.Weight = .medium
     ) -> some View {
-        HStack(spacing: metrics.detailValueSpacing) {
+        GridRow {
             Text(label)
                 .foregroundStyle(.secondary)
-                .frame(width: metrics.detailLabelWidth, alignment: .leading)
+            Spacer(minLength: metrics.detailValueSpacing)
             Text(value)
                 .fontWeight(valueWeight)
                 .monospacedDigit()
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
-            Spacer(minLength: 0)
         }
         .font(.system(size: metrics.fontSize))
     }
