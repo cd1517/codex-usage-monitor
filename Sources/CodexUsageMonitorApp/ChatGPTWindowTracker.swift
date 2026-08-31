@@ -7,10 +7,13 @@ import CodexUsageMonitorCore
 
 @MainActor
 final class ChatGPTWindowTracker {
+    private static let trackingInterval: TimeInterval = 1.0 / 60.0
+
     private let targetBundleID = "com.openai.codex"
     private var observer: NSObjectProtocol?
     private var timer: Timer?
     private var activePID: pid_t?
+    private var trackedWindowID: CGWindowID?
     private var wasActive = false
 
     var onWindowFrame: ((CGRect?) -> Void)?
@@ -52,11 +55,13 @@ final class ChatGPTWindowTracker {
             onActivation?()
         }
         if timer == nil {
-            timer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
+            let timer = Timer(timeInterval: Self.trackingInterval, repeats: true) { [weak self] _ in
                 MainActor.assumeIsolated {
                     self?.refreshWindowFrame()
                 }
             }
+            RunLoop.main.add(timer, forMode: .common)
+            self.timer = timer
         }
         refreshWindowFrame()
     }
@@ -65,6 +70,7 @@ final class ChatGPTWindowTracker {
         timer?.invalidate()
         timer = nil
         activePID = nil
+        trackedWindowID = nil
     }
 
     private func refreshWindowFrame() {
@@ -74,30 +80,55 @@ final class ChatGPTWindowTracker {
             return
         }
 
-        guard let cgBounds = selectPrimaryWindow(from: windowDescriptors(), ownerPID: activePID),
-              let appKitBounds = convertWindowBounds(cgBounds, displays: displayDescriptors()) else {
+        guard let window = primaryWindowDescriptor(ownerPID: activePID),
+              let appKitBounds = convertWindowBounds(window.bounds, displays: displayDescriptors()) else {
             onWindowFrame?(nil)
             return
         }
         onWindowFrame?(appKitBounds)
     }
 
-    private func windowDescriptors() -> [WindowDescriptor] {
-        guard let rawWindows = CGWindowListCopyWindowInfo(
-            [.optionOnScreenOnly, .excludeDesktopElements],
-            kCGNullWindowID
-        ) as? [[String: Any]] else {
+    private func primaryWindowDescriptor(ownerPID: pid_t) -> WindowDescriptor? {
+        if let trackedWindowID,
+           let window = selectTrackedWindowDescriptor(
+               from: windowDescriptors(windowID: trackedWindowID),
+               ownerPID: ownerPID
+           ) {
+            return window
+        }
+
+        let window = selectPrimaryWindowDescriptor(from: windowDescriptors(), ownerPID: ownerPID)
+        trackedWindowID = window?.windowID
+        return window
+    }
+
+    private func windowDescriptors(windowID: CGWindowID? = nil) -> [WindowDescriptor] {
+        let rawWindows: [[String: Any]]?
+        if let windowID {
+            rawWindows = CGWindowListCreateDescriptionFromArray(
+                [windowID] as CFArray
+            ) as? [[String: Any]]
+        } else {
+            rawWindows = CGWindowListCopyWindowInfo(
+                [.optionOnScreenOnly, .excludeDesktopElements],
+                kCGNullWindowID
+            ) as? [[String: Any]]
+        }
+
+        guard let rawWindows else {
             return []
         }
 
         return rawWindows.compactMap { window in
-            guard let ownerPID = (window[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value,
+            guard let windowID = (window[kCGWindowNumber as String] as? NSNumber)?.uint32Value,
+                  let ownerPID = (window[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value,
                   let layer = (window[kCGWindowLayer as String] as? NSNumber)?.intValue,
                   let boundsDictionary = window[kCGWindowBounds as String] as? [String: Any],
                   let bounds = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary) else {
                 return nil
             }
             return WindowDescriptor(
+                windowID: windowID,
                 ownerPID: ownerPID,
                 layer: layer,
                 isOnscreen: (window[kCGWindowIsOnscreen as String] as? NSNumber)?.boolValue ?? false,
