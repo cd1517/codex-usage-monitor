@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="cd1517/comoni"
-DMG_URL="https://github.com/$REPO/releases/latest/download/Codex%20Usage%20Monitor.dmg"
+DMG_URL="https://github.com/$REPO/releases/latest/download/Comoni.dmg"
 APP_NAME="Comoni.app"
 INSTALL_DIR="/Applications"
 
