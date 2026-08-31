@@ -16,7 +16,6 @@ final class OverlayPanelController {
     private var isChatGPTFrontmost = false
     private var isExpanded = false
     private var pendingCollapse: DispatchWorkItem?
-    private var pendingActivationOrdering: DispatchWorkItem?
 
     init(viewModel: UsageViewModel) {
         let presentation = OverlayPresentation()
@@ -76,28 +75,22 @@ final class OverlayPanelController {
 
     func setChatGPTFrontmost(_ isFrontmost: Bool) {
         isChatGPTFrontmost = isFrontmost
-        pendingActivationOrdering?.cancel()
-        pendingActivationOrdering = nil
-        guard isFrontmost else {
+        panel.level = isFrontmost ? .floating : .normal
+
+        if isFrontmost {
+            if panel.isVisible {
+                panel.orderFrontRegardless()
+            }
             return
         }
-
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self, self.panel.isVisible, self.chatGPTWindowNumber != nil else {
-                return
-            }
-            self.pendingActivationOrdering = nil
-            self.panel.orderFrontRegardless()
+        if panel.isVisible, let chatGPTWindowNumber {
+            panel.order(.above, relativeTo: chatGPTWindowNumber)
         }
-        pendingActivationOrdering = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: workItem)
     }
 
     func hide() {
         pendingCollapse?.cancel()
         pendingCollapse = nil
-        pendingActivationOrdering?.cancel()
-        pendingActivationOrdering = nil
         isExpanded = false
         presentation.isExpanded = false
         panel.hasShadow = false
