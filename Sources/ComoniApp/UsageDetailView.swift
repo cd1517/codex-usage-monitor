@@ -46,8 +46,8 @@ struct UsageDetailView: View {
                 value: dateText(windows[1].resetsAt)
             )
 
-            Divider()
-
+            // 分隔线挂在行 overlay 上：插入 VStack 的分隔视图（Divider 或
+            // Rectangle）会改变兄弟行的布局协商，把上方行的数值压到缩放档。
             detailRow(
                 label: presentation.localization.resetCreditsLabel,
                 value: presentation.localization.resetCreditCount(
@@ -55,6 +55,13 @@ struct UsageDetailView: View {
                 ),
                 valueWeight: .semibold
             )
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Color(nsColor: .separatorColor))
+                    .frame(height: 1)
+                    .offset(y: -metrics.detailSpacing / 2)
+            }
+
             detailRow(
                 label: presentation.localization.resetCreditExpiryLabel,
                 value: expiryDateText
