@@ -47,19 +47,19 @@ func runWindowGeometryTests() throws {
 
     let frame = overlayFrame(
         chatGPTWindow: CGRect(x: 100, y: 100, width: 1200, height: 800),
-        panelSize: CGSize(width: 220, height: 30)
+        panelSize: CGSize(width: 250, height: 32)
     )
-    try expect(frame == CGRect(x: 860, y: 854, width: 220, height: 30), "strip should sit immediately left of the Share controls")
+    try expect(frame == CGRect(x: 830, y: 852, width: 250, height: 32), "strip should sit immediately left of the Share controls")
 
     let narrowFrame = overlayFrame(
         chatGPTWindow: CGRect(x: 100, y: 100, width: 400, height: 600),
-        panelSize: CGSize(width: 220, height: 30)
+        panelSize: CGSize(width: 250, height: 32)
     )
     try expect(narrowFrame.minX == 112, "strip should stay inside a narrow ChatGPT window")
 
     let expandedFrame = overlayFrame(
         chatGPTWindow: CGRect(x: 100, y: 100, width: 1200, height: 800),
-        panelSize: CGSize(width: 310, height: 136)
+        panelSize: CGSize(width: 360, height: 170)
     )
     try expect(
         !shouldCollapseOverlay(pointerLocation: CGPoint(x: frame.midX, y: frame.midY), panelFrame: expandedFrame),

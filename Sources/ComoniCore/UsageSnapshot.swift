@@ -77,6 +77,13 @@ public struct UsageWindow: Equatable, Sendable {
     public let resetsAt: Date?
 }
 
+public func isLowRemainingUsage(_ remainingPercent: Int?) -> Bool {
+    guard let remainingPercent else {
+        return false
+    }
+    return (0...10).contains(remainingPercent)
+}
+
 public struct UsageDisplaySnapshot: Equatable, Sendable {
     public let planType: String?
     public let windows: [UsageWindow]

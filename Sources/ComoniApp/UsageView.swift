@@ -9,28 +9,58 @@ struct UsageView: View {
     @ObservedObject var viewModel: UsageViewModel
     @ObservedObject var presentation: OverlayPresentation
 
+    private let morphAnimation = Animation.easeInOut(duration: 0.22)
+
     var body: some View {
         VStack(spacing: 0) {
             compactStrip
-                .frame(height: 30)
+                .frame(height: 32)
 
             if presentation.isExpanded {
                 Divider()
-                    .padding(.horizontal, 10)
+                    .padding(.horizontal, 12)
                 detailRows
+                    .transition(
+                        .opacity.combined(
+                            with: .scale(scale: 0.94, anchor: .topTrailing)
+                        )
+                    )
             }
         }
         .frame(
-            width: presentation.isExpanded ? 310 : 220,
-            height: presentation.isExpanded ? 136 : 30,
+            width: presentation.isExpanded ? 360 : 250,
+            height: presentation.isExpanded ? 170 : 32,
             alignment: .top
         )
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background {
+            RoundedRectangle(
+                cornerRadius: presentation.isExpanded ? 14 : 0,
+                style: .continuous
+            )
+            .fill(Color(nsColor: .windowBackgroundColor))
+        }
+        .overlay {
+            RoundedRectangle(
+                cornerRadius: presentation.isExpanded ? 14 : 0,
+                style: .continuous
+            )
+            .strokeBorder(
+                Color(nsColor: .separatorColor).opacity(presentation.isExpanded ? 0.55 : 0),
+                lineWidth: 1
+            )
+        }
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: presentation.isExpanded ? 14 : 0,
+                style: .continuous
+            )
+        )
         .contentShape(Rectangle())
+        .animation(morphAnimation, value: presentation.isExpanded)
     }
 
     private var compactStrip: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 7) {
             Image(systemName: "bolt.fill")
                 .font(.system(size: 13, weight: .regular))
                 .foregroundStyle(.secondary)
@@ -39,8 +69,8 @@ struct UsageView: View {
             compactValue(label: "5小时", value: windows[0].remainingPercent)
 
             Rectangle()
-                .fill(.secondary.opacity(0.22))
-                .frame(width: 1, height: 12)
+                .fill(Color(nsColor: .separatorColor).opacity(0.72))
+                .frame(width: 1, height: 18)
 
             compactValue(label: "7天", value: windows[1].remainingPercent)
 
@@ -50,24 +80,29 @@ struct UsageView: View {
                 .fill(.secondary.opacity(0.45))
                 .frame(width: 1, height: 17)
         }
-        .padding(.leading, 7)
+        .padding(.leading, 9)
         .padding(.trailing, 5)
     }
 
     private func compactValue(label: String, value: Int?) -> some View {
-        HStack(spacing: 3) {
+        HStack(spacing: 8) {
             Text(label)
                 .foregroundStyle(.secondary)
             Text(value.map { "\($0)%" } ?? "--")
                 .fontWeight(.semibold)
                 .monospacedDigit()
+                .foregroundStyle(
+                    isLowRemainingUsage(value)
+                        ? Color(nsColor: .systemOrange)
+                        : Color.primary
+                )
         }
         .font(.system(size: 18, weight: .regular))
         .fixedSize()
     }
 
     private var detailRows: some View {
-        VStack(spacing: 7) {
+        VStack(spacing: 10) {
             detailRow(label: "5 小时重置", value: dateText(windows[0].resetsAt))
             detailRow(label: "7 天重置", value: dateText(windows[1].resetsAt))
 
@@ -86,9 +121,9 @@ struct UsageView: View {
             }
             .font(.system(size: 18))
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 8)
-        .padding(.bottom, 9)
+        .padding(.horizontal, 18)
+        .padding(.top, 12)
+        .padding(.bottom, 13)
     }
 
     private func detailRow(label: String, value: String) -> some View {

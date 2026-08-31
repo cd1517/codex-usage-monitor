@@ -7,8 +7,10 @@ import ComoniCore
 
 @MainActor
 final class OverlayPanelController {
-    static let compactSize = CGSize(width: 220, height: 30)
-    static let expandedSize = CGSize(width: 310, height: 136)
+    static let compactSize = CGSize(width: 250, height: 32)
+    static let expandedSize = CGSize(width: 360, height: 170)
+
+    private static let morphDuration: TimeInterval = 0.22
 
     private let panel: NSPanel
     private let presentation: OverlayPresentation
@@ -32,8 +34,8 @@ final class OverlayPanelController {
             )
         )
         panel.contentView = hostingView
-        panel.isOpaque = true
-        panel.backgroundColor = .windowBackgroundColor
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
@@ -65,6 +67,7 @@ final class OverlayPanelController {
         pendingCollapse = nil
         isExpanded = false
         presentation.isExpanded = false
+        panel.hasShadow = false
         panel.orderOut(nil)
     }
 
@@ -78,12 +81,27 @@ final class OverlayPanelController {
         }
         isExpanded = expanded
         let frame = overlayFrame(chatGPTWindow: chatGPTWindow, panelSize: currentSize)
+
         if expanded {
-            panel.setFrame(frame, display: true)
-            presentation.isExpanded = true
-        } else {
-            presentation.isExpanded = false
-            panel.setFrame(frame, display: true)
+            panel.hasShadow = true
+            panel.invalidateShadow()
+        }
+
+        withAnimation(.easeInOut(duration: Self.morphDuration)) {
+            presentation.isExpanded = expanded
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Self.morphDuration
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            panel.animator().setFrame(frame, display: true)
+        } completionHandler: { [weak self] in
+            guard let self else {
+                return
+            }
+            if !expanded {
+                self.panel.hasShadow = false
+            }
+            self.panel.invalidateShadow()
         }
     }
 
