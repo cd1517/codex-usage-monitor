@@ -18,14 +18,23 @@ public func normalizedOverlayLanguage(_ storedValue: String?) -> String {
     return storedValue
 }
 
+/// 非 CJK 语言的标签与日期明显更宽，固定面板宽度会把标签与数值之间的
+/// Spacer 压到最小值，需要加宽详情面板留出间距。
+public func usesWideScriptDetailLayout(localeIdentifier: String) -> Bool {
+    let language = localeIdentifier.lowercased()
+    return !(language.hasPrefix("zh") || language.hasPrefix("ja") || language.hasPrefix("ko"))
+}
+
 public struct OverlayMetrics: Equatable, Sendable {
     public let fontSize: CGFloat
     public let scale: CGFloat
+    public let wideScriptDetail: Bool
 
-    public init(fontSize: Int) {
+    public init(fontSize: Int, wideScriptDetail: Bool = false) {
         let normalizedSize = normalizedOverlayFontSize(fontSize)
         self.fontSize = CGFloat(normalizedSize)
         scale = CGFloat(normalizedSize) / 18
+        self.wideScriptDetail = wideScriptDetail
     }
 
     public var compactSize: CGSize {
@@ -40,7 +49,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     public var detailPanelSize: CGSize {
         // 高度收紧 9pt：文字行框自带上下 slack，使底部留白与顶部对齐
         CGSize(
-            width: expandedSize.width,
+            width: expandedSize.width + (wideScriptDetail ? scaled(28) : 0),
             height: expandedSize.height - compactSize.height - scaled(9)
         )
     }

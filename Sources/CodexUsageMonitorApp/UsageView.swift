@@ -259,7 +259,7 @@ final class OverlayPresentation: ObservableObject {
     @Published private(set) var overlayLanguage: String
     @Published private(set) var localization: UsageLocalization
 
-    var onFontSizeChange: (() -> Void)?
+    var onMetricsChange: (() -> Void)?
     var onMenuTrackingChange: ((Bool) -> Void)?
 
     private let userDefaults: UserDefaults
@@ -283,7 +283,12 @@ final class OverlayPresentation: ObservableObject {
     }
 
     var metrics: OverlayMetrics {
-        OverlayMetrics(fontSize: fontSize)
+        OverlayMetrics(
+            fontSize: fontSize,
+            wideScriptDetail: usesWideScriptDetailLayout(
+                localeIdentifier: localization.localeIdentifier
+            )
+        )
     }
 
     func selectFontSize(_ size: Int) {
@@ -293,7 +298,7 @@ final class OverlayPresentation: ObservableObject {
         }
         fontSize = normalizedSize
         userDefaults.set(normalizedSize, forKey: Self.fontSizeDefaultsKey)
-        onFontSizeChange?()
+        onMetricsChange?()
     }
 
     func selectLanguage(_ language: String) {
@@ -326,5 +331,6 @@ final class OverlayPresentation: ObservableObject {
             return
         }
         localization = detected
+        onMetricsChange?()
     }
 }
