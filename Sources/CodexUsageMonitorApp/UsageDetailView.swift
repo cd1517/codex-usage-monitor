@@ -36,11 +36,7 @@ struct UsageDetailView: View {
     }
 
     private var detailRows: some View {
-        Grid(
-            alignment: .leading,
-            horizontalSpacing: 0,
-            verticalSpacing: metrics.detailSpacing
-        ) {
+        VStack(alignment: .leading, spacing: metrics.detailSpacing) {
             detailRow(
                 label: presentation.localization.primaryResetLabel,
                 value: dateText(windows[0].resetsAt)
@@ -51,7 +47,6 @@ struct UsageDetailView: View {
             )
 
             Divider()
-                .gridCellColumns(3)
 
             detailRow(
                 label: presentation.localization.resetCreditsLabel,
@@ -75,21 +70,18 @@ struct UsageDetailView: View {
         value: String,
         valueWeight: Font.Weight = .medium
     ) -> some View {
-        GridRow {
+        HStack(spacing: 0) {
             Text(label)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
-                .gridCellAnchor(.leading)
-            Color.clear
-                .frame(width: metrics.detailValueSpacing)
+            Spacer(minLength: metrics.detailValueSpacing)
             Text(value)
                 .fontWeight(valueWeight)
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .gridCellAnchor(.leading)
+                .layoutPriority(1)
         }
         .font(.system(size: metrics.fontSize))
     }
