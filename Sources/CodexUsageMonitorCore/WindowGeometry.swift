@@ -1,13 +1,22 @@
 import CoreGraphics
 
 public struct WindowDescriptor: Equatable, Sendable {
+    public let windowID: CGWindowID
     public let ownerPID: pid_t
     public let layer: Int
     public let isOnscreen: Bool
     public let alpha: Double
     public let bounds: CGRect
 
-    public init(ownerPID: pid_t, layer: Int, isOnscreen: Bool, alpha: Double, bounds: CGRect) {
+    public init(
+        windowID: CGWindowID = 0,
+        ownerPID: pid_t,
+        layer: Int,
+        isOnscreen: Bool,
+        alpha: Double,
+        bounds: CGRect
+    ) {
+        self.windowID = windowID
         self.ownerPID = ownerPID
         self.layer = layer
         self.isOnscreen = isOnscreen
@@ -27,19 +36,37 @@ public struct DisplayDescriptor: Equatable, Sendable {
 }
 
 public func selectPrimaryWindow(from windows: [WindowDescriptor], ownerPID: pid_t) -> CGRect? {
+    selectPrimaryWindowDescriptor(from: windows, ownerPID: ownerPID)?.bounds
+}
+
+public func selectPrimaryWindowDescriptor(
+    from windows: [WindowDescriptor],
+    ownerPID: pid_t
+) -> WindowDescriptor? {
     windows
-        .filter {
-            $0.ownerPID == ownerPID
-                && $0.layer == 0
-                && $0.isOnscreen
-                && $0.alpha > 0
-                && $0.bounds.width >= 600
-                && $0.bounds.height >= 400
-        }
+        .filter { isPrimaryWindowCandidate($0, ownerPID: ownerPID) && $0.isOnscreen }
         .max { left, right in
             left.bounds.width * left.bounds.height < right.bounds.width * right.bounds.height
-        }?
-        .bounds
+        }
+}
+
+public func selectTrackedWindowDescriptor(
+    from windows: [WindowDescriptor],
+    ownerPID: pid_t
+) -> WindowDescriptor? {
+    windows.first {
+        $0.ownerPID == ownerPID
+            && $0.bounds.width > 0
+            && $0.bounds.height > 0
+    }
+}
+
+private func isPrimaryWindowCandidate(_ window: WindowDescriptor, ownerPID: pid_t) -> Bool {
+    window.ownerPID == ownerPID
+        && window.layer == 0
+        && window.alpha > 0
+        && window.bounds.width >= 600
+        && window.bounds.height >= 400
 }
 
 public func convertWindowBounds(_ bounds: CGRect, displays: [DisplayDescriptor]) -> CGRect? {
