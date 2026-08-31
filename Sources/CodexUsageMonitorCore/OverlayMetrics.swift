@@ -20,7 +20,8 @@ public struct OverlayMetrics: Equatable, Sendable {
     }
 
     public var compactSize: CGSize {
-        CGSize(width: scaled(278), height: 36)
+        // 高度 35pt = 原生分享按钮灰底实测高度
+        CGSize(width: scaled(278), height: 35)
     }
 
     public var expandedSize: CGSize {
