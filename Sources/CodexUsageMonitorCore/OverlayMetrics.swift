@@ -9,6 +9,15 @@ public func normalizedOverlayFontSize(_ storedValue: Int?) -> Int {
     return storedValue
 }
 
+public let supportedOverlayLanguages = ["auto", "zh-Hans", "zh-Hant", "en", "ja"]
+
+public func normalizedOverlayLanguage(_ storedValue: String?) -> String {
+    guard let storedValue, supportedOverlayLanguages.contains(storedValue) else {
+        return "auto"
+    }
+    return storedValue
+}
+
 public struct OverlayMetrics: Equatable, Sendable {
     public let fontSize: CGFloat
     public let scale: CGFloat

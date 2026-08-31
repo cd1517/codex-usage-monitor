@@ -46,6 +46,12 @@ func runUsageLocalizationTests() throws {
 
     let fallback = UsageLocalization(localeIdentifier: "unsupported")
     try expect(fallback.compactPrimaryLabel == "5h", "unsupported locales should fall back to English")
+
+    try expect(simplifiedChinese.fontSizeMenuTitle == "字号", "Simplified Chinese should localize the font size menu title")
+    try expect(traditionalChinese.languageMenuTitle == "語言", "Traditional Chinese should localize the language menu title")
+    try expect(english.autoLanguageLabel == "Auto", "English should label the automatic language option")
+    try expect(japanese.languageMenuTitle == "言語", "Japanese should localize the language menu title")
+    try expect(fallback.languageMenuTitle == "Language", "unsupported locales should fall back to English menu strings")
 }
 
 private func makeProcessArgumentData(_ arguments: [String]) -> Data {

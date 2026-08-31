@@ -13,6 +13,22 @@ func runOverlayMetricsTests() throws {
         supportedOverlayFontSizes == Array(14...20),
         "the native menu should expose every integer size from 14pt through 20pt"
     )
+    try expect(
+        normalizedOverlayLanguage(nil) == "auto",
+        "a missing saved language should follow automatic detection"
+    )
+    try expect(
+        normalizedOverlayLanguage("fr") == "auto",
+        "an unsupported saved language should follow automatic detection"
+    )
+    try expect(
+        normalizedOverlayLanguage("zh-Hant") == "zh-Hant",
+        "a supported saved language should be kept as the override"
+    )
+    try expect(
+        supportedOverlayLanguages == ["auto", "zh-Hans", "zh-Hant", "en", "ja"],
+        "the native menu should expose automatic detection and the four manual languages"
+    )
 
     var previous = OverlayMetrics(fontSize: 14)
     for size in 15...20 {

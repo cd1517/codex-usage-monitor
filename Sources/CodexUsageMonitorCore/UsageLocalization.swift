@@ -11,6 +11,9 @@ public struct UsageLocalization: Equatable, Sendable {
     public let resetCreditAvailablePrefix: String
     public let unavailableText: String
     public let unknownText: String
+    public let fontSizeMenuTitle: String
+    public let languageMenuTitle: String
+    public let autoLanguageLabel: String
 
     private let resetCreditUnit: String
     private let usesEnglishPlural: Bool
@@ -33,6 +36,10 @@ public struct UsageLocalization: Equatable, Sendable {
         unavailableText = strings[7]
         unknownText = strings[8]
         usesEnglishPlural = language == "en"
+        let menuStrings = Self.menuStrings(for: language)
+        fontSizeMenuTitle = menuStrings.fontSize
+        languageMenuTitle = menuStrings.language
+        autoLanguageLabel = menuStrings.auto
     }
 
     public func resetCreditCount(_ count: Int?) -> String {
@@ -106,6 +113,53 @@ public struct UsageLocalization: Equatable, Sendable {
             return ["5 घंटे", "1 सप्ताह", "5 घंटे रीसेट", "साप्ताहिक रीसेट", "रीसेट क्रेडिट", "मान्य अवधि", "बार", "उपलब्ध नहीं", "अज्ञात", ""]
         default:
             return ["5h", "1wk", "5-hour reset", "1-week reset", "Reset credits", "Valid until", "times", "Unavailable", "Unknown", ""]
+        }
+    }
+
+    private static func menuStrings(
+        for language: String
+    ) -> (fontSize: String, language: String, auto: String) {
+        switch language {
+        case "zh-Hans":
+            return ("字号", "语言", "自动")
+        case "zh-Hant":
+            return ("字號", "語言", "自動")
+        case "ja":
+            return ("文字サイズ", "言語", "自動")
+        case "ko":
+            return ("글자 크기", "언어", "자동")
+        case "fr":
+            return ("Taille de police", "Langue", "Automatique")
+        case "de":
+            return ("Schriftgröße", "Sprache", "Automatisch")
+        case "es":
+            return ("Tamaño de fuente", "Idioma", "Automático")
+        case "pt":
+            return ("Tamanho da fonte", "Idioma", "Automático")
+        case "it":
+            return ("Dimensione carattere", "Lingua", "Automatico")
+        case "ru":
+            return ("Размер шрифта", "Язык", "Автоматически")
+        case "ar":
+            return ("حجم الخط", "اللغة", "تلقائي")
+        case "nl":
+            return ("Tekengrootte", "Taal", "Automatisch")
+        case "pl":
+            return ("Rozmiar czcionki", "Język", "Automatycznie")
+        case "tr":
+            return ("Yazı tipi boyutu", "Dil", "Otomatik")
+        case "uk":
+            return ("Розмір шрифту", "Мова", "Автоматично")
+        case "vi":
+            return ("Cỡ chữ", "Ngôn ngữ", "Tự động")
+        case "id":
+            return ("Ukuran font", "Bahasa", "Otomatis")
+        case "th":
+            return ("ขนาดฟอนต์", "ภาษา", "อัตโนมัติ")
+        case "hi":
+            return ("फ़ॉन्ट आकार", "भाषा", "स्वतः")
+        default:
+            return ("Font Size", "Language", "Auto")
         }
     }
 }

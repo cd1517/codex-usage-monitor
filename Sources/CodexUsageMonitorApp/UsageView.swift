@@ -53,8 +53,13 @@ struct UsageView: View {
 
             FontSizeMenuButton(
                 selectedSize: presentation.fontSize,
+                selectedLanguage: presentation.overlayLanguage,
+                menuTitle: presentation.localization.fontSizeMenuTitle,
+                languageMenuTitle: presentation.localization.languageMenuTitle,
+                autoLanguageLabel: presentation.localization.autoLanguageLabel,
                 symbolPointSize: metrics.iconSize,
                 onSelect: presentation.selectFontSize,
+                onSelectLanguage: presentation.selectLanguage,
                 onTrackingChange: presentation.setFontMenuOpen
             )
             .frame(width: metrics.menuButtonSize, height: metrics.menuButtonSize)
@@ -91,8 +96,13 @@ struct UsageView: View {
 
 private struct FontSizeMenuButton: NSViewRepresentable {
     let selectedSize: Int
+    let selectedLanguage: String
+    let menuTitle: String
+    let languageMenuTitle: String
+    let autoLanguageLabel: String
     let symbolPointSize: CGFloat
     let onSelect: (Int) -> Void
+    let onSelectLanguage: (String) -> Void
     let onTrackingChange: (Bool) -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -107,8 +117,7 @@ private struct FontSizeMenuButton: NSViewRepresentable {
         button.imagePosition = .imageOnly
         button.imageScaling = .scaleProportionallyDown
         button.contentTintColor = .secondaryLabelColor
-        button.toolTip = "设置字号"
-        button.setAccessibilityLabel("设置字号")
+        button.setAccessibilityLabel(menuTitle)
         button.target = context.coordinator
         button.action = #selector(Coordinator.showMenu(_:))
         updateButtonImage(button)
@@ -117,6 +126,8 @@ private struct FontSizeMenuButton: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSButton, context: Context) {
         context.coordinator.parent = self
+        nsView.toolTip = menuTitle
+        nsView.setAccessibilityLabel(menuTitle)
         updateButtonImage(nsView)
     }
 
@@ -127,13 +138,13 @@ private struct FontSizeMenuButton: NSViewRepresentable {
         )
         button.image = NSImage(
             systemSymbolName: "ellipsis",
-            accessibilityDescription: "设置字号"
+            accessibilityDescription: menuTitle
         )?.withSymbolConfiguration(configuration)
     }
 
     final class Coordinator: NSObject, NSMenuDelegate {
         var parent: FontSizeMenuButton
-        private let menu = NSMenu(title: "字号")
+        private let menu = NSMenu()
 
         init(parent: FontSizeMenuButton) {
             self.parent = parent
@@ -158,6 +169,13 @@ private struct FontSizeMenuButton: NSViewRepresentable {
             parent.onSelect(size)
         }
 
+        @objc private func selectLanguage(_ sender: NSMenuItem) {
+            guard let language = sender.representedObject as? String else {
+                return
+            }
+            parent.onSelectLanguage(language)
+        }
+
         func menuWillOpen(_ menu: NSMenu) {
             parent.onTrackingChange(true)
         }
@@ -168,6 +186,7 @@ private struct FontSizeMenuButton: NSViewRepresentable {
 
         private func rebuildMenu() {
             menu.removeAllItems()
+            menu.title = parent.menuTitle
             for size in supportedOverlayFontSizes {
                 let item = NSMenuItem(
                     title: "\(size)pt",
@@ -179,6 +198,38 @@ private struct FontSizeMenuButton: NSViewRepresentable {
                 item.state = size == parent.selectedSize ? .on : .off
                 menu.addItem(item)
             }
+            menu.addItem(.separator())
+            menu.addItem(languageMenuItem())
+        }
+
+        private func languageMenuItem() -> NSMenuItem {
+            let languageMenu = NSMenu(title: parent.languageMenuTitle)
+            languageMenu.autoenablesItems = false
+            let choices: [(value: String, title: String)] = [
+                ("auto", parent.autoLanguageLabel),
+                ("zh-Hans", "简体中文"),
+                ("zh-Hant", "繁體中文"),
+                ("en", "English"),
+                ("ja", "日本語")
+            ]
+            for choice in choices {
+                let item = NSMenuItem(
+                    title: choice.title,
+                    action: #selector(selectLanguage(_:)),
+                    keyEquivalent: ""
+                )
+                item.target = self
+                item.representedObject = choice.value
+                item.state = choice.value == parent.selectedLanguage ? .on : .off
+                languageMenu.addItem(item)
+            }
+            let languageItem = NSMenuItem(
+                title: parent.languageMenuTitle,
+                action: nil,
+                keyEquivalent: ""
+            )
+            languageItem.submenu = languageMenu
+            return languageItem
         }
     }
 }
@@ -186,11 +237,13 @@ private struct FontSizeMenuButton: NSViewRepresentable {
 @MainActor
 final class OverlayPresentation: ObservableObject {
     private static let fontSizeDefaultsKey = "usageOverlayFontSize"
+    private static let languageDefaultsKey = "usageOverlayLanguage"
 
     @Published var isHovering = false
     @Published var isDetailVisible = false
     @Published private(set) var fontSize: Int
     @Published private(set) var isFontMenuOpen = false
+    @Published private(set) var overlayLanguage: String
     @Published private(set) var localization: UsageLocalization
 
     var onFontSizeChange: (() -> Void)?
@@ -205,8 +258,14 @@ final class OverlayPresentation: ObservableObject {
         self.userDefaults = userDefaults
         let storedSize = (userDefaults.object(forKey: Self.fontSizeDefaultsKey) as? NSNumber)?.intValue
         fontSize = normalizedOverlayFontSize(storedSize)
+        let storedLanguage = normalizedOverlayLanguage(
+            userDefaults.string(forKey: Self.languageDefaultsKey)
+        )
+        overlayLanguage = storedLanguage
         localization = UsageLocalization(
-            localeIdentifier: localeIdentifier ?? Locale.preferredLanguages.first ?? "en-US"
+            localeIdentifier: storedLanguage == "auto"
+                ? localeIdentifier ?? Locale.preferredLanguages.first ?? "en-US"
+                : storedLanguage
         )
     }
 
@@ -224,6 +283,16 @@ final class OverlayPresentation: ObservableObject {
         onFontSizeChange?()
     }
 
+    func selectLanguage(_ language: String) {
+        let normalizedLanguage = normalizedOverlayLanguage(language)
+        guard normalizedLanguage != overlayLanguage else {
+            return
+        }
+        overlayLanguage = normalizedLanguage
+        userDefaults.set(normalizedLanguage, forKey: Self.languageDefaultsKey)
+        refreshLanguage()
+    }
+
     func setFontMenuOpen(_ isOpen: Bool) {
         guard isOpen != isFontMenuOpen else {
             return
@@ -233,7 +302,10 @@ final class OverlayPresentation: ObservableObject {
     }
 
     func refreshLanguage() {
-        guard let localeIdentifier = ChatGPTLanguageDetector.detect() else {
+        let localeIdentifier = overlayLanguage == "auto"
+            ? ChatGPTLanguageDetector.detect()
+            : overlayLanguage
+        guard let localeIdentifier else {
             return
         }
         let detected = UsageLocalization(localeIdentifier: localeIdentifier)
