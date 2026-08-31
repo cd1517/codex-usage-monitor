@@ -21,6 +21,7 @@ final class OverlayPanelController {
     private var isDetailHovering = false
     private var isDetailSliding = false
     private var pendingCollapse: DispatchWorkItem?
+    private var hoverReconcileTimer: Timer?
 
     init(viewModel: UsageViewModel) {
         let presentation = OverlayPresentation()
@@ -79,6 +80,16 @@ final class OverlayPanelController {
         presentation.onMenuTrackingChange = { [weak self] isOpen in
             self?.handleMenuTrackingChange(isOpen)
         }
+
+        // AppKit 的 mouseEntered/mouseExited 在面板带动画重排、快速进出时会
+        // 丢失，悬停标志可能卡住导致详情窗不收起；定时用鼠标真实位置对账。
+        let reconcileTimer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.reconcileHoverState()
+            }
+        }
+        RunLoop.main.add(reconcileTimer, forMode: .common)
+        hoverReconcileTimer = reconcileTimer
     }
 
     func show(attachedTo chatGPTWindow: CGRect, relativeTo chatGPTWindowNumber: Int) {
@@ -185,6 +196,18 @@ final class OverlayPanelController {
 
     private func handleDetailHoverChange(_ isHovering: Bool) {
         isDetailHovering = isHovering
+        updateHoverState()
+    }
+
+    /// 以鼠标真实位置为准校正悬停标志，兜住丢失的 mouseEntered/mouseExited。
+    private func reconcileHoverState() {
+        guard compactPanel.isVisible, !presentation.isFontMenuOpen else {
+            return
+        }
+        let mouseLocation = NSEvent.mouseLocation
+        isCompactHovering = compactPanel.frame.contains(mouseLocation)
+        isDetailHovering = isDetailVisible && detailPanel.isVisible
+            && detailPanel.frame.contains(mouseLocation)
         updateHoverState()
     }
 
