@@ -7,9 +7,6 @@ import CodexUsageMonitorCore
 
 @MainActor
 final class OverlayPanelController {
-    static let compactSize = CGSize(width: 250, height: 32)
-    static let expandedSize = CGSize(width: 360, height: 170)
-
     private static let morphDuration: TimeInterval = 0.22
 
     private let panel: NSPanel
@@ -22,7 +19,7 @@ final class OverlayPanelController {
         let presentation = OverlayPresentation()
         self.presentation = presentation
         panel = NonactivatingPanel(
-            contentRect: CGRect(origin: .zero, size: Self.compactSize),
+            contentRect: CGRect(origin: .zero, size: presentation.metrics.compactSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
@@ -49,11 +46,17 @@ final class OverlayPanelController {
         hostingView.onHoverChange = { [weak self] isHovering in
             self?.handleHoverChange(isHovering)
         }
+        presentation.onFontSizeChange = { [weak self] in
+            self?.updatePanelFrameForCurrentMetrics()
+        }
+        presentation.onMenuTrackingChange = { [weak self] isOpen in
+            self?.handleMenuTrackingChange(isOpen)
+        }
     }
 
     func show(attachedTo chatGPTWindow: CGRect) {
         self.chatGPTWindow = chatGPTWindow
-        let frame = overlayFrame(chatGPTWindow: chatGPTWindow, panelSize: currentSize)
+        let frame = targetFrame(attachedTo: chatGPTWindow)
         if panel.frame != frame {
             panel.setFrame(frame, display: panel.isVisible)
         }
@@ -71,16 +74,12 @@ final class OverlayPanelController {
         panel.orderOut(nil)
     }
 
-    private var currentSize: CGSize {
-        isExpanded ? Self.expandedSize : Self.compactSize
-    }
-
     private func setExpanded(_ expanded: Bool) {
         guard expanded != isExpanded, let chatGPTWindow else {
             return
         }
         isExpanded = expanded
-        let frame = overlayFrame(chatGPTWindow: chatGPTWindow, panelSize: currentSize)
+        let frame = targetFrame(attachedTo: chatGPTWindow)
 
         if expanded {
             panel.hasShadow = true
@@ -119,6 +118,9 @@ final class OverlayPanelController {
                 return
             }
             self.pendingCollapse = nil
+            guard !self.presentation.isFontMenuOpen else {
+                return
+            }
             guard shouldCollapseOverlay(
                 pointerLocation: NSEvent.mouseLocation,
                 panelFrame: self.panel.frame
@@ -129,6 +131,41 @@ final class OverlayPanelController {
         }
         pendingCollapse = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.08, execute: workItem)
+    }
+
+    private func targetFrame(attachedTo chatGPTWindow: CGRect) -> CGRect {
+        let compactFrame = overlayFrame(
+            chatGPTWindow: chatGPTWindow,
+            panelSize: presentation.metrics.compactSize
+        )
+        guard isExpanded else {
+            return compactFrame
+        }
+        return overlayFrame(
+            preservingTopRightOf: compactFrame,
+            panelSize: presentation.metrics.expandedSize
+        )
+    }
+
+    private func updatePanelFrameForCurrentMetrics() {
+        guard let chatGPTWindow else {
+            return
+        }
+        let frame = targetFrame(attachedTo: chatGPTWindow)
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.16
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            panel.animator().setFrame(frame, display: true)
+        }
+    }
+
+    private func handleMenuTrackingChange(_ isOpen: Bool) {
+        pendingCollapse?.cancel()
+        pendingCollapse = nil
+        guard !isOpen else {
+            return
+        }
+        handleHoverChange(panel.frame.contains(NSEvent.mouseLocation))
     }
 }
 

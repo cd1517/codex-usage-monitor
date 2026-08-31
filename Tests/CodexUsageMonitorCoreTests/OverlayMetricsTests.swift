@@ -32,15 +32,15 @@ func runOverlayMetricsTests() throws {
 
     let defaultMetrics = OverlayMetrics(fontSize: 18)
     try expect(
-        defaultMetrics.compactSize == CGSize(width: 250, height: 32),
-        "18pt should preserve the current compact dimensions"
+        defaultMetrics.compactSize == CGSize(width: 278, height: 32),
+        "18pt should add only enough compact width for the native ellipsis control"
     )
     try expect(
         defaultMetrics.expandedSize == CGSize(width: 360, height: 170),
         "18pt should preserve the current detail dimensions"
     )
 
-    let compactFrame = CGRect(x: 830, y: 852, width: 250, height: 32)
+    let compactFrame = CGRect(x: 802, y: 852, width: 278, height: 32)
     let expandedFrame = overlayFrame(
         preservingTopRightOf: compactFrame,
         panelSize: defaultMetrics.expandedSize
