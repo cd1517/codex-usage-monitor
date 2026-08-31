@@ -22,7 +22,7 @@ func runOverlayMetricsTests() throws {
             "compact width should grow with the selected font size"
         )
         try expect(
-            metrics.compactSize.height == 36,
+            metrics.compactSize.height == 35,
             "compact background height must stay equal to the native Share background"
         )
         try expect(
@@ -39,11 +39,11 @@ func runOverlayMetricsTests() throws {
 
     let defaultMetrics = OverlayMetrics(fontSize: 18)
     try expect(
-        defaultMetrics.compactSize == CGSize(width: 278, height: 36),
+        defaultMetrics.compactSize == CGSize(width: 278, height: 35),
         "18pt should use the native Share background height"
     )
     try expect(
-        defaultMetrics.expandedSize == CGSize(width: 278, height: 190),
+        defaultMetrics.expandedSize == CGSize(width: 278, height: 189),
         "18pt should include the fixed strip and four detail rows"
     )
     try expect(
@@ -59,13 +59,13 @@ func runOverlayMetricsTests() throws {
         defaultMetrics.detailHorizontalPadding == 14,
         "detail rows must keep equal text insets on both panel edges"
     )
-    let compactFrame = CGRect(x: 802, y: 856, width: 278, height: 36)
+    let compactFrame = CGRect(x: 802, y: 857, width: 278, height: 35)
     let expandedFrame = overlayFrame(
         preservingTopRightOf: compactFrame,
         panelSize: defaultMetrics.expandedSize
     )
     try expect(
-        expandedFrame == CGRect(x: 802, y: 702, width: 278, height: 190),
+        expandedFrame == CGRect(x: 802, y: 703, width: 278, height: 189),
         "the expanded panel should grow left and down from the compact top-right anchor"
     )
     try expect(
