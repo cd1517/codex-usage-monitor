@@ -47,8 +47,8 @@ func runOverlayMetricsTests() throws {
         "18pt should include the fixed strip and four detail rows"
     )
     try expect(
-        defaultMetrics.detailPanelSize == CGSize(width: 278, height: 154),
-        "the detail window should exclude the 36pt compact strip"
+        defaultMetrics.detailPanelSize == CGSize(width: 278, height: 143),
+        "the detail window should exclude the compact strip and align bottom inset with the top"
     )
     try expect(
         defaultMetrics.compactCornerRadius == 12,
