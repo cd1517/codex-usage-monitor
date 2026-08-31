@@ -86,7 +86,8 @@ public func convertWindowBounds(_ bounds: CGRect, displays: [DisplayDescriptor])
 
 public func overlayFrame(chatGPTWindow: CGRect, panelSize: CGSize) -> CGRect {
     let windowInset: CGFloat = 12
-    let titleBarTopInset: CGFloat = 8
+    // 11pt = 原生分享按钮灰底顶边距窗口上边缘的实测距离
+    let titleBarTopInset: CGFloat = 11
     let trailingControlsWidth: CGFloat = 220
     let preferredX = chatGPTWindow.maxX - trailingControlsWidth - panelSize.width
     return CGRect(
