@@ -14,83 +14,35 @@ struct UsageView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            surface
-
-            VStack(alignment: .trailing, spacing: 0) {
-                compactStrip
-                    .frame(
-                        width: metrics.compactSize.width,
-                        height: metrics.compactSize.height
-                    )
-                    .background {
-                        RoundedRectangle(
-                            cornerRadius: metrics.cornerRadius * 0.58,
-                            style: .continuous
-                        )
-                        .fill(Color.primary.opacity(0.055))
-                        .opacity(
-                            (presentation.isHovering || presentation.isFontMenuOpen)
-                                && !presentation.isExpanded
-                                ? 1
-                                : 0
-                        )
-                    }
-
-                if presentation.isExpanded {
-                    detailBody
-                }
-            }
-            .frame(
-                maxWidth: .infinity,
-                maxHeight: .infinity,
-                alignment: .topTrailing
+        compactStrip
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+        .background {
+            RoundedRectangle(
+                cornerRadius: metrics.cornerRadius * 0.58,
+                style: .continuous
+            )
+            .fill(Color.primary.opacity(0.055))
+            .opacity(
+                presentation.isHovering || presentation.isFontMenuOpen
+                    ? 1
+                    : 0
             )
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         .contentShape(Rectangle())
         .animation(.easeOut(duration: 0.1), value: presentation.isHovering)
         .animation(.easeInOut(duration: 0.16), value: presentation.fontSize)
     }
 
-    private var surface: some View {
-        Group {
-            if presentation.isExpanded {
-                RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
-                    .fill(Color(nsColor: .windowBackgroundColor))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
-                            .fill(Color.primary.opacity(0.055))
-                    }
-                    .overlay {
-                        RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
-                            .stroke(
-                                Color(nsColor: .separatorColor).opacity(0.55),
-                                lineWidth: 1
-                            )
-                    }
-            } else {
-                Rectangle()
-                    .fill(Color(nsColor: .windowBackgroundColor))
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
     private var compactStrip: some View {
         HStack(spacing: metrics.compactSpacing) {
+            compactValue(label: "5小时", value: windows[0].remainingPercent)
+
             Image(systemName: "bolt.fill")
                 .font(.system(size: metrics.iconSize, weight: .regular))
                 .foregroundStyle(Color(nsColor: .systemBlue))
                 .frame(width: metrics.iconWidth, height: metrics.iconHeight)
 
-            compactValue(label: "5小时", value: windows[0].remainingPercent)
-
-            Rectangle()
-                .fill(Color(nsColor: .separatorColor).opacity(0.72))
-                .frame(width: 1, height: metrics.compactSeparatorHeight)
-
-            compactValue(label: "7天", value: windows[1].remainingPercent)
+            compactValue(label: "1周", value: windows[1].remainingPercent)
 
             Spacer(minLength: metrics.compactSpacing)
 
@@ -109,6 +61,7 @@ struct UsageView: View {
             Rectangle()
                 .fill(.secondary.opacity(0.45))
                 .frame(width: 1, height: metrics.iconHeight)
+                .opacity(presentation.isDetailVisible ? 0 : 1)
         }
         .padding(.leading, metrics.compactLeadingPadding)
         .padding(.trailing, metrics.compactTrailingPadding)
@@ -131,76 +84,13 @@ struct UsageView: View {
         .fixedSize()
     }
 
-    private var detailBody: some View {
-        VStack(spacing: 0) {
-            Divider()
-                .padding(.horizontal, metrics.detailHorizontalPadding)
-            detailRows
-        }
-        .frame(
-            width: metrics.expandedSize.width,
-            height: metrics.expandedSize.height - metrics.compactSize.height,
-            alignment: .top
-        )
-    }
-
-    private var detailRows: some View {
-        VStack(spacing: metrics.detailSpacing) {
-            detailRow(label: "5 小时重置", value: dateText(windows[0].resetsAt))
-            detailRow(label: "7 天重置", value: dateText(windows[1].resetsAt))
-
-            Divider()
-
-            HStack(spacing: metrics.compactSpacing) {
-                Text("重置额度")
-                    .foregroundStyle(.secondary)
-                Text(viewModel.snapshot?.resetCreditsAvailable.map(String.init) ?? "--")
-                    .fontWeight(.semibold)
-                    .monospacedDigit()
-                Spacer()
-                Text(expiryText)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .font(.system(size: metrics.fontSize))
-        }
-        .padding(.horizontal, metrics.detailHorizontalPadding)
-        .padding(.top, metrics.detailTopPadding)
-        .padding(.bottom, metrics.detailBottomPadding)
-    }
-
-    private func detailRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(value)
-                .fontWeight(.medium)
-                .monospacedDigit()
-        }
-        .font(.system(size: metrics.fontSize))
-    }
-
     private var windows: [UsageWindow] {
         viewModel.snapshot?.windows ?? [
             UsageWindow(label: "5 小时", remainingPercent: nil, resetsAt: nil),
-            UsageWindow(label: "7 天", remainingPercent: nil, resetsAt: nil)
+            UsageWindow(label: "1 周", remainingPercent: nil, resetsAt: nil)
         ]
     }
 
-    private func dateText(_ date: Date?) -> String {
-        guard let date else {
-            return "不可用"
-        }
-        return date.formatted(.dateTime.month().day().hour().minute())
-    }
-
-    private var expiryText: String {
-        guard let date = viewModel.snapshot?.resetCreditExpiresAt else {
-            return "有效期未知"
-        }
-        return "有效期至 \(date.formatted(.dateTime.month().day().hour().minute()))"
-    }
 }
 
 private struct FontSizeMenuButton: NSViewRepresentable {
@@ -301,8 +191,8 @@ private struct FontSizeMenuButton: NSViewRepresentable {
 final class OverlayPresentation: ObservableObject {
     private static let fontSizeDefaultsKey = "usageOverlayFontSize"
 
-    @Published var isExpanded = false
     @Published var isHovering = false
+    @Published var isDetailVisible = false
     @Published private(set) var fontSize: Int
     @Published private(set) var isFontMenuOpen = false
 

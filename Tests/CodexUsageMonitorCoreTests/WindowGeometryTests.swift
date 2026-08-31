@@ -61,7 +61,7 @@ func runWindowGeometryTests() throws {
         chatGPTWindow: CGRect(x: 100, y: 100, width: 1200, height: 800),
         panelSize: CGSize(width: 250, height: 32)
     )
-    try expect(frame == CGRect(x: 830, y: 852, width: 250, height: 32), "strip should sit immediately left of the Share controls")
+    try expect(frame == CGRect(x: 830, y: 854, width: 250, height: 32), "strip should align vertically with the native Share controls")
 
     let narrowFrame = overlayFrame(
         chatGPTWindow: CGRect(x: 100, y: 100, width: 400, height: 600),
@@ -80,5 +80,45 @@ func runWindowGeometryTests() throws {
     try expect(
         shouldCollapseOverlay(pointerLocation: CGPoint(x: expandedFrame.maxX + 1, y: expandedFrame.midY), panelFrame: expandedFrame),
         "the panel should collapse after the pointer actually leaves its frame"
+    )
+
+    let detailFrame = detailOverlayFrame(
+        compactFrame: frame,
+        detailSize: CGSize(width: 304, height: 170),
+        gap: 4
+    )
+    try expect(
+        detailFrame == CGRect(x: 776, y: 680, width: 304, height: 170),
+        "the independent detail window should align right and sit below the fixed strip"
+    )
+    let collapsedDetailFrame = collapsedDetailOverlayFrame(
+        compactFrame: frame,
+        detailSize: CGSize(width: 304, height: 170),
+        gap: 4
+    )
+    try expect(
+        collapsedDetailFrame == CGRect(x: 776, y: 849, width: 304, height: 1),
+        "the detail window should start at one point high and expand only downward"
+    )
+    try expect(
+        !shouldCollapseOverlay(
+            pointerLocation: CGPoint(x: frame.midX, y: frame.midY),
+            panelFrames: [frame, detailFrame]
+        ),
+        "the overlay should remain open while the pointer is over the fixed strip"
+    )
+    try expect(
+        !shouldCollapseOverlay(
+            pointerLocation: CGPoint(x: detailFrame.midX, y: detailFrame.midY),
+            panelFrames: [frame, detailFrame]
+        ),
+        "the overlay should remain open while the pointer moves into the detail window"
+    )
+    try expect(
+        shouldCollapseOverlay(
+            pointerLocation: CGPoint(x: detailFrame.minX - 1, y: detailFrame.midY),
+            panelFrames: [frame, detailFrame]
+        ),
+        "the detail window should collapse only after the pointer leaves both windows"
     )
 }
