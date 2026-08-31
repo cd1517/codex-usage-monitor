@@ -3,8 +3,7 @@
 # 用法：curl -fsSL https://raw.githubusercontent.com/<用户名>/codex-usage-monitor/main/scripts/install.sh | bash
 set -euo pipefail
 
-# ⚠️ 若仓库归属不是 ManGo/codex-usage-monitor，改这一行
-REPO="ManGo/codex-usage-monitor"
+REPO="cd1517/codex-usage-monitor"
 DMG_URL="https://github.com/$REPO/releases/latest/download/Codex%20Usage%20Monitor.dmg"
 APP_NAME="Codex Usage Monitor.app"
 INSTALL_DIR="/Applications"
