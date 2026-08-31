@@ -15,7 +15,7 @@ struct UsageView: View {
 
     var body: some View {
         compactStrip
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .background {
             RoundedRectangle(
                 cornerRadius: metrics.cornerRadius * 0.58,
@@ -41,10 +41,9 @@ struct UsageView: View {
                 .font(.system(size: metrics.iconSize, weight: .regular))
                 .foregroundStyle(Color(nsColor: .systemBlue))
                 .frame(width: metrics.iconWidth, height: metrics.iconHeight)
+                .padding(.horizontal, metrics.boltHorizontalPadding)
 
             compactValue(label: "1周", value: windows[1].remainingPercent)
-
-            Spacer(minLength: metrics.compactSpacing)
 
             FontSizeMenuButton(
                 selectedSize: presentation.fontSize,
