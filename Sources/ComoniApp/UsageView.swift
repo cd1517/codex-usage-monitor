@@ -11,81 +11,107 @@ struct UsageView: View {
 
     private let morphAnimation = Animation.easeInOut(duration: 0.22)
 
-    var body: some View {
-        VStack(spacing: 0) {
-            compactStrip
-                .frame(height: 32)
+    private var metrics: OverlayMetrics {
+        presentation.metrics
+    }
 
-            if presentation.isExpanded {
-                Divider()
-                    .padding(.horizontal, 12)
-                detailRows
-                    .transition(
-                        .opacity.combined(
-                            with: .scale(scale: 0.94, anchor: .topTrailing)
-                        )
+    private var currentSize: CGSize {
+        presentation.isExpanded ? metrics.expandedSize : metrics.compactSize
+    }
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            surface
+
+            VStack(alignment: .trailing, spacing: 0) {
+                compactStrip
+                    .frame(
+                        width: metrics.compactSize.width,
+                        height: metrics.compactSize.height
                     )
+
+                if presentation.isExpanded {
+                    detailBody
+                        .transition(
+                            .opacity.combined(
+                                with: .scale(scale: 0.94, anchor: .topTrailing)
+                            )
+                        )
+                }
             }
-        }
-        .frame(
-            width: presentation.isExpanded ? 360 : 250,
-            height: presentation.isExpanded ? 170 : 32,
-            alignment: .top
-        )
-        .background {
-            RoundedRectangle(
-                cornerRadius: presentation.isExpanded ? 14 : 0,
-                style: .continuous
-            )
-            .fill(Color(nsColor: .windowBackgroundColor))
-        }
-        .overlay {
-            RoundedRectangle(
-                cornerRadius: presentation.isExpanded ? 14 : 0,
-                style: .continuous
-            )
-            .strokeBorder(
-                Color(nsColor: .separatorColor).opacity(presentation.isExpanded ? 0.55 : 0),
-                lineWidth: 1
+            .frame(
+                width: currentSize.width,
+                height: currentSize.height,
+                alignment: .topTrailing
             )
         }
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: presentation.isExpanded ? 14 : 0,
-                style: .continuous
-            )
-        )
+        .frame(width: currentSize.width, height: currentSize.height, alignment: .topTrailing)
         .contentShape(Rectangle())
         .animation(morphAnimation, value: presentation.isExpanded)
+        .animation(.easeInOut(duration: 0.16), value: presentation.fontSize)
+    }
+
+    @ViewBuilder
+    private var surface: some View {
+        if presentation.isExpanded {
+            let shape = OverlayExtensionShape(
+                compactWidth: metrics.compactSize.width,
+                compactHeight: metrics.compactSize.height,
+                cornerRadius: metrics.cornerRadius
+            )
+            shape
+                .fill(Color(nsColor: .windowBackgroundColor))
+                .overlay {
+                    shape.stroke(
+                        Color(nsColor: .separatorColor).opacity(0.55),
+                        lineWidth: 1
+                    )
+                }
+        } else {
+            Rectangle()
+                .fill(Color(nsColor: .windowBackgroundColor))
+        }
     }
 
     private var compactStrip: some View {
-        HStack(spacing: 7) {
+        HStack(spacing: metrics.compactSpacing) {
             Image(systemName: "bolt.fill")
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.secondary)
-                .frame(width: 15, height: 17)
+                .font(.system(size: metrics.iconSize, weight: .regular))
+                .foregroundStyle(Color(nsColor: .systemBlue))
+                .frame(width: metrics.iconWidth, height: metrics.iconHeight)
 
             compactValue(label: "5小时", value: windows[0].remainingPercent)
 
             Rectangle()
                 .fill(Color(nsColor: .separatorColor).opacity(0.72))
-                .frame(width: 1, height: 18)
+                .frame(width: 1, height: metrics.compactSeparatorHeight)
 
             compactValue(label: "7天", value: windows[1].remainingPercent)
 
-            Spacer(minLength: 2)
+            Spacer(minLength: metrics.compactSpacing)
+
+            FontSizeMenuButton(
+                selectedSize: presentation.fontSize,
+                symbolPointSize: metrics.iconSize,
+                onSelect: presentation.selectFontSize,
+                onTrackingChange: presentation.setFontMenuOpen
+            )
+            .frame(width: metrics.menuButtonSize, height: metrics.menuButtonSize)
+            .background {
+                Circle()
+                    .fill(Color.primary.opacity(0.045))
+            }
 
             Rectangle()
                 .fill(.secondary.opacity(0.45))
-                .frame(width: 1, height: 17)
+                .frame(width: 1, height: metrics.iconHeight)
         }
-        .padding(.leading, 9)
-        .padding(.trailing, 5)
+        .padding(.leading, metrics.compactLeadingPadding)
+        .padding(.trailing, metrics.compactTrailingPadding)
     }
 
     private func compactValue(label: String, value: Int?) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: metrics.compactValueSpacing) {
             Text(label)
                 .foregroundStyle(.secondary)
             Text(value.map { "\($0)%" } ?? "--")
@@ -97,18 +123,32 @@ struct UsageView: View {
                         : Color.primary
                 )
         }
-        .font(.system(size: 18, weight: .regular))
+        .font(.system(size: metrics.fontSize, weight: .regular))
         .fixedSize()
     }
 
+    private var detailBody: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .padding(.horizontal, metrics.detailHorizontalPadding)
+
+            detailRows
+        }
+        .frame(
+            width: metrics.expandedSize.width,
+            height: metrics.expandedSize.height - metrics.compactSize.height,
+            alignment: .top
+        )
+    }
+
     private var detailRows: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: metrics.detailSpacing) {
             detailRow(label: "5 小时重置", value: dateText(windows[0].resetsAt))
             detailRow(label: "7 天重置", value: dateText(windows[1].resetsAt))
 
             Divider()
 
-            HStack(spacing: 5) {
+            HStack(spacing: metrics.compactSpacing) {
                 Text("重置额度")
                     .foregroundStyle(.secondary)
                 Text(viewModel.snapshot?.resetCreditsAvailable.map(String.init) ?? "--")
@@ -119,11 +159,11 @@ struct UsageView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            .font(.system(size: 18))
+            .font(.system(size: metrics.fontSize))
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 12)
-        .padding(.bottom, 13)
+        .padding(.horizontal, metrics.detailHorizontalPadding)
+        .padding(.top, metrics.detailTopPadding)
+        .padding(.bottom, metrics.detailBottomPadding)
     }
 
     private func detailRow(label: String, value: String) -> some View {
@@ -135,7 +175,7 @@ struct UsageView: View {
                 .fontWeight(.medium)
                 .monospacedDigit()
         }
-        .font(.system(size: 18))
+        .font(.system(size: metrics.fontSize))
     }
 
     private var windows: [UsageWindow] {
@@ -160,7 +200,184 @@ struct UsageView: View {
     }
 }
 
+private struct OverlayExtensionShape: Shape {
+    let compactWidth: CGFloat
+    let compactHeight: CGFloat
+    let cornerRadius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let radius = min(cornerRadius, compactHeight / 2)
+        let stepX = rect.maxX - compactWidth
+        var path = Path()
+
+        path.move(to: CGPoint(x: stepX + radius, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.minY + radius),
+            control: CGPoint(x: rect.maxX, y: rect.minY)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
+            control: CGPoint(x: rect.maxX, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX, y: rect.maxY - radius),
+            control: CGPoint(x: rect.minX, y: rect.maxY)
+        )
+        path.addLine(to: CGPoint(x: rect.minX, y: compactHeight + radius))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX + radius, y: compactHeight),
+            control: CGPoint(x: rect.minX, y: compactHeight)
+        )
+        path.addLine(to: CGPoint(x: stepX - radius, y: compactHeight))
+        path.addQuadCurve(
+            to: CGPoint(x: stepX, y: compactHeight - radius),
+            control: CGPoint(x: stepX, y: compactHeight)
+        )
+        path.addLine(to: CGPoint(x: stepX, y: rect.minY + radius))
+        path.addQuadCurve(
+            to: CGPoint(x: stepX + radius, y: rect.minY),
+            control: CGPoint(x: stepX, y: rect.minY)
+        )
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct FontSizeMenuButton: NSViewRepresentable {
+    let selectedSize: Int
+    let symbolPointSize: CGFloat
+    let onSelect: (Int) -> Void
+    let onTrackingChange: (Bool) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(parent: self)
+    }
+
+    func makeNSView(context: Context) -> NSButton {
+        let button = NSButton()
+        button.setButtonType(.momentaryChange)
+        button.isBordered = false
+        button.bezelStyle = .inline
+        button.imagePosition = .imageOnly
+        button.imageScaling = .scaleProportionallyDown
+        button.contentTintColor = .secondaryLabelColor
+        button.toolTip = "设置字号"
+        button.setAccessibilityLabel("设置字号")
+        button.target = context.coordinator
+        button.action = #selector(Coordinator.showMenu(_:))
+        updateButtonImage(button)
+        return button
+    }
+
+    func updateNSView(_ nsView: NSButton, context: Context) {
+        context.coordinator.parent = self
+        updateButtonImage(nsView)
+    }
+
+    private func updateButtonImage(_ button: NSButton) {
+        let configuration = NSImage.SymbolConfiguration(
+            pointSize: symbolPointSize,
+            weight: .regular
+        )
+        button.image = NSImage(
+            systemSymbolName: "ellipsis",
+            accessibilityDescription: "设置字号"
+        )?.withSymbolConfiguration(configuration)
+    }
+
+    final class Coordinator: NSObject, NSMenuDelegate {
+        var parent: FontSizeMenuButton
+        private let menu = NSMenu(title: "字号")
+
+        init(parent: FontSizeMenuButton) {
+            self.parent = parent
+            super.init()
+            menu.delegate = self
+            menu.autoenablesItems = false
+        }
+
+        @objc func showMenu(_ sender: NSButton) {
+            rebuildMenu()
+            menu.popUp(
+                positioning: nil,
+                at: CGPoint(x: sender.bounds.maxX, y: sender.bounds.minY - 2),
+                in: sender
+            )
+        }
+
+        @objc private func selectFontSize(_ sender: NSMenuItem) {
+            guard let size = sender.representedObject as? Int else {
+                return
+            }
+            parent.onSelect(size)
+        }
+
+        func menuWillOpen(_ menu: NSMenu) {
+            parent.onTrackingChange(true)
+        }
+
+        func menuDidClose(_ menu: NSMenu) {
+            parent.onTrackingChange(false)
+        }
+
+        private func rebuildMenu() {
+            menu.removeAllItems()
+            for size in supportedOverlayFontSizes {
+                let item = NSMenuItem(
+                    title: "\(size)pt",
+                    action: #selector(selectFontSize(_:)),
+                    keyEquivalent: ""
+                )
+                item.target = self
+                item.representedObject = size
+                item.state = size == parent.selectedSize ? .on : .off
+                menu.addItem(item)
+            }
+        }
+    }
+}
+
 @MainActor
 final class OverlayPresentation: ObservableObject {
+    private static let fontSizeDefaultsKey = "usageOverlayFontSize"
+
     @Published var isExpanded = false
+    @Published private(set) var fontSize: Int
+    @Published private(set) var isFontMenuOpen = false
+
+    var onFontSizeChange: (() -> Void)?
+    var onMenuTrackingChange: ((Bool) -> Void)?
+
+    private let userDefaults: UserDefaults
+
+    init(userDefaults: UserDefaults = .standard) {
+        self.userDefaults = userDefaults
+        let storedSize = (userDefaults.object(forKey: Self.fontSizeDefaultsKey) as? NSNumber)?.intValue
+        fontSize = normalizedOverlayFontSize(storedSize)
+    }
+
+    var metrics: OverlayMetrics {
+        OverlayMetrics(fontSize: fontSize)
+    }
+
+    func selectFontSize(_ size: Int) {
+        let normalizedSize = normalizedOverlayFontSize(size)
+        guard normalizedSize != fontSize else {
+            return
+        }
+        fontSize = normalizedSize
+        userDefaults.set(normalizedSize, forKey: Self.fontSizeDefaultsKey)
+        onFontSizeChange?()
+    }
+
+    func setFontMenuOpen(_ isOpen: Bool) {
+        guard isOpen != isFontMenuOpen else {
+            return
+        }
+        isFontMenuOpen = isOpen
+        onMenuTrackingChange?(isOpen)
+    }
 }
