@@ -2,14 +2,30 @@ import CoreGraphics
 
 func runWindowGeometryTests() throws {
     let windows = [
-        WindowDescriptor(ownerPID: 42, layer: 0, isOnscreen: true, alpha: 1, bounds: CGRect(x: 0, y: 0, width: 300, height: 200)),
-        WindowDescriptor(ownerPID: 42, layer: 0, isOnscreen: true, alpha: 1, bounds: CGRect(x: 50, y: 60, width: 1200, height: 800)),
+        WindowDescriptor(windowID: 101, ownerPID: 42, layer: 0, isOnscreen: true, alpha: 1, bounds: CGRect(x: 0, y: 0, width: 300, height: 200)),
+        WindowDescriptor(windowID: 102, ownerPID: 42, layer: 0, isOnscreen: true, alpha: 1, bounds: CGRect(x: 50, y: 60, width: 1200, height: 800)),
         WindowDescriptor(ownerPID: 99, layer: 0, isOnscreen: true, alpha: 1, bounds: CGRect(x: 0, y: 0, width: 1500, height: 1000)),
         WindowDescriptor(ownerPID: 42, layer: 2, isOnscreen: true, alpha: 1, bounds: CGRect(x: 0, y: 0, width: 1400, height: 900))
     ]
     try expect(
         selectPrimaryWindow(from: windows, ownerPID: 42) == CGRect(x: 50, y: 60, width: 1200, height: 800),
         "largest visible normal window should be selected"
+    )
+    try expect(
+        selectPrimaryWindowDescriptor(from: windows, ownerPID: 42)?.windowID == 102,
+        "primary-window discovery should preserve the window ID for low-latency frame tracking"
+    )
+    let cachedWindow = WindowDescriptor(
+        windowID: 102,
+        ownerPID: 42,
+        layer: 2,
+        isOnscreen: false,
+        alpha: 0,
+        bounds: CGRect(x: 50, y: 60, width: 1200, height: 800)
+    )
+    try expect(
+        selectTrackedWindowDescriptor(from: [cachedWindow], ownerPID: 42)?.windowID == 102,
+        "a cached window ID should remain trackable while transient description flags change"
     )
 
     let invalidWindows = [

@@ -52,7 +52,9 @@ final class OverlayPanelController {
     func show(attachedTo chatGPTWindow: CGRect) {
         self.chatGPTWindow = chatGPTWindow
         let frame = overlayFrame(chatGPTWindow: chatGPTWindow, panelSize: currentSize)
-        panel.setFrame(frame, display: panel.isVisible)
+        if panel.frame != frame {
+            panel.setFrame(frame, display: panel.isVisible)
+        }
         if !panel.isVisible {
             panel.orderFrontRegardless()
         }
