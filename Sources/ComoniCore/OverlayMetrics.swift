@@ -37,6 +37,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     public var detailGap: CGFloat { scaled(4) }
 
     public var compactSpacing: CGFloat { scaled(7) }
+    public var boltHorizontalPadding: CGFloat { scaled(4) }
     public var compactValueSpacing: CGFloat { scaled(8) }
     public var compactLeadingPadding: CGFloat { scaled(9) }
     public var compactTrailingPadding: CGFloat { scaled(5) }
