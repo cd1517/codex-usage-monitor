@@ -29,29 +29,6 @@ func runOverlayMetricsTests() throws {
         supportedOverlayLanguages == ["auto", "zh-Hans", "zh-Hant", "en", "ja"],
         "the native menu should expose automatic detection and the four manual languages"
     )
-    try expect(
-        usesWideScriptDetailLayout(localeIdentifier: "en-US")
-            && usesWideScriptDetailLayout(localeIdentifier: "en")
-            && usesWideScriptDetailLayout(localeIdentifier: "fr"),
-        "Latin-script locales should widen the detail panel"
-    )
-    try expect(
-        !usesWideScriptDetailLayout(localeIdentifier: "zh-CN")
-            && !usesWideScriptDetailLayout(localeIdentifier: "zh-Hant")
-            && !usesWideScriptDetailLayout(localeIdentifier: "ja-JP")
-            && !usesWideScriptDetailLayout(localeIdentifier: "ko-KR"),
-        "CJK locales should keep the compact detail panel"
-    )
-    try expect(
-        OverlayMetrics(fontSize: 18, wideScriptDetail: true).detailPanelSize
-            == CGSize(width: 306, height: 145),
-        "wide-script detail panels should gain 28pt of width at 18pt"
-    )
-    try expect(
-        OverlayMetrics(fontSize: 18, wideScriptDetail: true).compactSize
-            == OverlayMetrics(fontSize: 18).compactSize,
-        "the compact strip size must not depend on the detail width bonus"
-    )
 
     var previous = OverlayMetrics(fontSize: 14)
     for size in 15...20 {
