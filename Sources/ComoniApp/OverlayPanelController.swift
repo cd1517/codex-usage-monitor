@@ -92,9 +92,9 @@ final class OverlayPanelController {
         RunLoop.main.add(reconcileTimer, forMode: .common)
         hoverReconcileTimer = reconcileTimer
 
-        // 双保险：横条以外的任何鼠标按下都必须收回详情窗。全局监听覆盖
-        // 其他应用与桌面，本地监听覆盖状态栏图标和详情窗自身；仅横条豁免
-        //（···菜单在其中）。鼠标事件监听不需要辅助功能权限。
+        // 双保险：横条与详情窗以外的任何鼠标按下都必须收回详情窗。全局监听
+        // 覆盖其他应用与桌面，本地监听覆盖状态栏图标；横条豁免（···菜单在其
+        // 中），详情窗豁免（点击视为正在查看）。鼠标事件监听不需要辅助功能权限。
         let clickMask: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
         clickMonitors = [
             NSEvent.addGlobalMonitorForEvents(matching: clickMask) { [weak self] _ in
@@ -104,7 +104,10 @@ final class OverlayPanelController {
             },
             NSEvent.addLocalMonitorForEvents(matching: clickMask) { [weak self] event in
                 MainActor.assumeIsolated {
-                    guard let self, event.window !== self.compactPanel else {
+                    guard let self else {
+                        return event
+                    }
+                    if event.window === self.compactPanel || event.window === self.detailPanel {
                         return event
                     }
                     self.forceCollapseDetail()
