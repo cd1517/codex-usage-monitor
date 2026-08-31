@@ -86,7 +86,7 @@ public func convertWindowBounds(_ bounds: CGRect, displays: [DisplayDescriptor])
 
 public func overlayFrame(chatGPTWindow: CGRect, panelSize: CGSize) -> CGRect {
     let windowInset: CGFloat = 12
-    let titleBarTopInset: CGFloat = 16
+    let titleBarTopInset: CGFloat = 14
     let trailingControlsWidth: CGFloat = 220
     let preferredX = chatGPTWindow.maxX - trailingControlsWidth - panelSize.width
     return CGRect(
@@ -106,8 +106,38 @@ public func overlayFrame(preservingTopRightOf compactFrame: CGRect, panelSize: C
     )
 }
 
+public func detailOverlayFrame(
+    compactFrame: CGRect,
+    detailSize: CGSize,
+    gap: CGFloat
+) -> CGRect {
+    CGRect(
+        x: compactFrame.maxX - detailSize.width,
+        y: compactFrame.minY - gap - detailSize.height,
+        width: detailSize.width,
+        height: detailSize.height
+    )
+}
+
+public func collapsedDetailOverlayFrame(
+    compactFrame: CGRect,
+    detailSize: CGSize,
+    gap: CGFloat
+) -> CGRect {
+    CGRect(
+        x: compactFrame.maxX - detailSize.width,
+        y: compactFrame.minY - gap - 1,
+        width: detailSize.width,
+        height: 1
+    )
+}
+
 public func shouldCollapseOverlay(pointerLocation: CGPoint, panelFrame: CGRect) -> Bool {
     !panelFrame.contains(pointerLocation)
+}
+
+public func shouldCollapseOverlay(pointerLocation: CGPoint, panelFrames: [CGRect]) -> Bool {
+    !panelFrames.contains { $0.contains(pointerLocation) }
 }
 
 private extension CGRect {

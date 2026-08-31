@@ -7,49 +7,73 @@ import CodexUsageMonitorCore
 
 @MainActor
 final class OverlayPanelController {
-    private static let morphDuration: TimeInterval = 0.22
+    private static let slideDuration: TimeInterval = 0.20
+    private static let collapseDelay: TimeInterval = 0.12
 
-    private let panel: NSPanel
+    private let compactPanel: NSPanel
+    private let detailPanel: NSPanel
     private let presentation: OverlayPresentation
     private var chatGPTWindow: CGRect?
     private var chatGPTWindowNumber: Int?
     private var isChatGPTFrontmost = false
-    private var isExpanded = false
+    private var isDetailVisible = false
+    private var isCompactHovering = false
+    private var isDetailHovering = false
     private var pendingCollapse: DispatchWorkItem?
 
     init(viewModel: UsageViewModel) {
         let presentation = OverlayPresentation()
         self.presentation = presentation
-        panel = NonactivatingPanel(
+        compactPanel = NonactivatingPanel(
             contentRect: CGRect(origin: .zero, size: presentation.metrics.compactSize),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-        let hostingView = HoverTrackingHostingView(
+        detailPanel = NonactivatingPanel(
+            contentRect: CGRect(origin: .zero, size: presentation.metrics.detailPanelSize),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+
+        let compactHostingView = HoverTrackingHostingView(
             rootView: UsageView(
                 viewModel: viewModel,
                 presentation: presentation
             )
         )
-        panel.contentView = hostingView
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = false
-        panel.level = .normal
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
-        panel.hidesOnDeactivate = false
-        panel.ignoresMouseEvents = false
-        panel.acceptsMouseMovedEvents = true
-        panel.alphaValue = 1
-        panel.isMovable = false
-        panel.isReleasedWhenClosed = false
+        let detailHostingView = HoverTrackingHostingView(
+            rootView: UsageDetailView(
+                viewModel: viewModel,
+                presentation: presentation
+            )
+        )
+        compactPanel.contentView = compactHostingView
+        detailPanel.contentView = detailHostingView
 
-        hostingView.onHoverChange = { [weak self] isHovering in
-            self?.handleHoverChange(isHovering)
+        for panel in [compactPanel, detailPanel] {
+            panel.isOpaque = false
+            panel.backgroundColor = .clear
+            panel.hasShadow = false
+            panel.level = .normal
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
+            panel.hidesOnDeactivate = false
+            panel.ignoresMouseEvents = false
+            panel.acceptsMouseMovedEvents = true
+            panel.alphaValue = 1
+            panel.isMovable = false
+            panel.isReleasedWhenClosed = false
+        }
+
+        compactHostingView.onHoverChange = { [weak self] isHovering in
+            self?.handleCompactHoverChange(isHovering)
+        }
+        detailHostingView.onHoverChange = { [weak self] isHovering in
+            self?.handleDetailHoverChange(isHovering)
         }
         presentation.onFontSizeChange = { [weak self] in
-            self?.updatePanelFrameForCurrentMetrics()
+            self?.updatePanelFramesForCurrentMetrics()
         }
         presentation.onMenuTrackingChange = { [weak self] isOpen in
             self?.handleMenuTrackingChange(isOpen)
@@ -60,83 +84,113 @@ final class OverlayPanelController {
         let targetChanged = self.chatGPTWindowNumber != chatGPTWindowNumber
         self.chatGPTWindow = chatGPTWindow
         self.chatGPTWindowNumber = chatGPTWindowNumber
-        let frame = targetFrame(attachedTo: chatGPTWindow)
-        if panel.frame != frame {
-            panel.setFrame(frame, display: panel.isVisible)
+        let compactFrame = compactFrame(attachedTo: chatGPTWindow)
+        if compactPanel.frame != compactFrame {
+            compactPanel.setFrame(compactFrame, display: compactPanel.isVisible)
         }
-        if !panel.isVisible || targetChanged {
-            if isChatGPTFrontmost {
-                panel.orderFrontRegardless()
-            } else {
-                panel.order(.above, relativeTo: chatGPTWindowNumber)
+        if isDetailVisible {
+            let detailFrame = detailFrame(attachedTo: compactFrame)
+            if detailPanel.frame != detailFrame {
+                detailPanel.setFrame(detailFrame, display: detailPanel.isVisible)
             }
+        }
+        if !compactPanel.isVisible || targetChanged {
+            orderPanelsFront()
         }
     }
 
     func setChatGPTFrontmost(_ isFrontmost: Bool) {
         isChatGPTFrontmost = isFrontmost
-        panel.level = isFrontmost ? .floating : .normal
-
-        if isFrontmost {
-            if panel.isVisible {
-                panel.orderFrontRegardless()
-            }
-            return
-        }
-        if panel.isVisible, let chatGPTWindowNumber {
-            panel.order(.above, relativeTo: chatGPTWindowNumber)
+        let level: NSWindow.Level = isFrontmost ? .floating : .normal
+        compactPanel.level = level
+        detailPanel.level = level
+        if compactPanel.isVisible {
+            orderPanelsFront()
         }
     }
 
     func hide() {
         pendingCollapse?.cancel()
         pendingCollapse = nil
-        isExpanded = false
-        presentation.isExpanded = false
+        isDetailVisible = false
+        isCompactHovering = false
+        isDetailHovering = false
+        presentation.isDetailVisible = false
         presentation.isHovering = false
-        panel.hasShadow = false
-        panel.orderOut(nil)
+        compactPanel.orderOut(nil)
+        detailPanel.orderOut(nil)
+        detailPanel.hasShadow = false
+        detailPanel.alphaValue = 1
+        chatGPTWindow = nil
         chatGPTWindowNumber = nil
     }
 
-    private func setExpanded(_ expanded: Bool) {
-        guard expanded != isExpanded, let chatGPTWindow else {
+    private func showDetail() {
+        guard !isDetailVisible, let chatGPTWindow else {
             return
         }
-        isExpanded = expanded
-        let frame = targetFrame(attachedTo: chatGPTWindow)
-
-        if expanded {
-            panel.hasShadow = true
-            panel.invalidateShadow()
-            presentation.isExpanded = true
-        }
+        isDetailVisible = true
+        presentation.isDetailVisible = true
+        let compactFrame = compactFrame(attachedTo: chatGPTWindow)
+        let collapsedFrame = collapsedDetailFrame(attachedTo: compactFrame)
+        let finalFrame = detailFrame(attachedTo: compactFrame)
+        detailPanel.setFrame(collapsedFrame, display: false)
+        detailPanel.alphaValue = 0
+        detailPanel.hasShadow = true
+        detailPanel.invalidateShadow()
+        orderPanelsFront()
 
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = Self.morphDuration
+            context.duration = Self.slideDuration
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            panel.animator().setFrame(frame, display: true)
+            detailPanel.animator().setFrame(finalFrame, display: true)
+            detailPanel.animator().alphaValue = 1
+        }
+    }
+
+    private func hideDetail() {
+        guard isDetailVisible, let chatGPTWindow else {
+            return
+        }
+        isDetailVisible = false
+        let compactFrame = compactFrame(attachedTo: chatGPTWindow)
+        let collapsedFrame = collapsedDetailFrame(attachedTo: compactFrame)
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Self.slideDuration
+            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            detailPanel.animator().setFrame(collapsedFrame, display: true)
+            detailPanel.animator().alphaValue = 0
         } completionHandler: { [weak self] in
             MainActor.assumeIsolated {
-                guard let self, self.isExpanded == expanded else {
+                guard let self, !self.isDetailVisible else {
                     return
                 }
-                if !expanded {
-                    self.presentation.isExpanded = false
-                    self.panel.hasShadow = false
-                }
-                self.panel.invalidateShadow()
+                self.presentation.isDetailVisible = false
+                self.detailPanel.orderOut(nil)
+                self.detailPanel.hasShadow = false
             }
         }
     }
 
-    private func handleHoverChange(_ isHovering: Bool) {
+    private func handleCompactHoverChange(_ isHovering: Bool) {
+        isCompactHovering = isHovering
+        updateHoverState()
+    }
+
+    private func handleDetailHoverChange(_ isHovering: Bool) {
+        isDetailHovering = isHovering
+        updateHoverState()
+    }
+
+    private func updateHoverState() {
         pendingCollapse?.cancel()
         pendingCollapse = nil
-        presentation.isHovering = isHovering
+        let isHovering = isCompactHovering || isDetailHovering
+        presentation.isHovering = isHovering || presentation.isFontMenuOpen
 
-        if isHovering {
-            setExpanded(true)
+        if isHovering || presentation.isFontMenuOpen {
+            showDetail()
             return
         }
 
@@ -150,49 +204,93 @@ final class OverlayPanelController {
             }
             guard shouldCollapseOverlay(
                 pointerLocation: NSEvent.mouseLocation,
-                panelFrame: self.panel.frame
+                panelFrames: self.visiblePanelFrames
             ) else {
                 return
             }
-            self.setExpanded(false)
+            self.presentation.isHovering = false
+            self.hideDetail()
         }
         pendingCollapse = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08, execute: workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.collapseDelay, execute: workItem)
     }
 
-    private func targetFrame(attachedTo chatGPTWindow: CGRect) -> CGRect {
-        let compactFrame = overlayFrame(
+    private func compactFrame(attachedTo chatGPTWindow: CGRect) -> CGRect {
+        overlayFrame(
             chatGPTWindow: chatGPTWindow,
             panelSize: presentation.metrics.compactSize
         )
-        guard isExpanded else {
-            return compactFrame
-        }
-        return overlayFrame(
-            preservingTopRightOf: compactFrame,
-            panelSize: presentation.metrics.expandedSize
+    }
+
+    private func detailFrame(attachedTo compactFrame: CGRect) -> CGRect {
+        detailOverlayFrame(
+            compactFrame: compactFrame,
+            detailSize: presentation.metrics.detailPanelSize,
+            gap: presentation.metrics.detailGap
         )
     }
 
-    private func updatePanelFrameForCurrentMetrics() {
+    private func collapsedDetailFrame(attachedTo compactFrame: CGRect) -> CGRect {
+        collapsedDetailOverlayFrame(
+            compactFrame: compactFrame,
+            detailSize: presentation.metrics.detailPanelSize,
+            gap: presentation.metrics.detailGap
+        )
+    }
+
+    private var visiblePanelFrames: [CGRect] {
+        if isDetailVisible {
+            return [compactPanel.frame, detailPanel.frame]
+        }
+        return [compactPanel.frame]
+    }
+
+    private func updatePanelFramesForCurrentMetrics() {
         guard let chatGPTWindow else {
             return
         }
-        let frame = targetFrame(attachedTo: chatGPTWindow)
+        let compactFrame = compactFrame(attachedTo: chatGPTWindow)
+        let detailFrame = detailFrame(attachedTo: compactFrame)
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.16
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            panel.animator().setFrame(frame, display: true)
+            compactPanel.animator().setFrame(compactFrame, display: true)
+            if isDetailVisible {
+                detailPanel.animator().setFrame(detailFrame, display: true)
+            }
         }
     }
 
     private func handleMenuTrackingChange(_ isOpen: Bool) {
         pendingCollapse?.cancel()
         pendingCollapse = nil
-        guard !isOpen else {
+        if isOpen {
+            presentation.isHovering = true
+            showDetail()
             return
         }
-        handleHoverChange(panel.frame.contains(NSEvent.mouseLocation))
+        isCompactHovering = compactPanel.frame.contains(NSEvent.mouseLocation)
+        isDetailHovering = isDetailVisible && detailPanel.frame.contains(NSEvent.mouseLocation)
+        updateHoverState()
+    }
+
+    private func orderPanelsFront() {
+        guard let chatGPTWindowNumber else {
+            return
+        }
+        if isChatGPTFrontmost {
+            if isDetailVisible {
+                detailPanel.orderFrontRegardless()
+            }
+            compactPanel.orderFrontRegardless()
+            return
+        }
+        if isDetailVisible {
+            detailPanel.order(.above, relativeTo: chatGPTWindowNumber)
+            compactPanel.order(.above, relativeTo: detailPanel.windowNumber)
+        } else {
+            compactPanel.order(.above, relativeTo: chatGPTWindowNumber)
+        }
     }
 }
 
