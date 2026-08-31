@@ -19,6 +19,7 @@ final class OverlayPanelController {
     private var isDetailVisible = false
     private var isCompactHovering = false
     private var isDetailHovering = false
+    private var isDetailSliding = false
     private var pendingCollapse: DispatchWorkItem?
 
     init(viewModel: UsageViewModel) {
@@ -87,7 +88,7 @@ final class OverlayPanelController {
         if compactPanel.frame != compactFrame {
             compactPanel.setFrame(compactFrame, display: compactPanel.isVisible)
         }
-        if isDetailVisible {
+        if isDetailVisible && !isDetailSliding {
             let detailFrame = detailFrame(attachedTo: compactFrame)
             if detailPanel.frame != detailFrame {
                 detailPanel.setFrame(detailFrame, display: detailPanel.isVisible)
@@ -132,6 +133,7 @@ final class OverlayPanelController {
         }
         isDetailVisible = true
         presentation.isDetailVisible = true
+        isDetailSliding = true
         let compactFrame = compactFrame(attachedTo: chatGPTWindow)
         let collapsedFrame = collapsedDetailFrame(attachedTo: compactFrame)
         let finalFrame = detailFrame(attachedTo: compactFrame)
@@ -146,6 +148,10 @@ final class OverlayPanelController {
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
             detailPanel.animator().setFrame(finalFrame, display: true)
             detailPanel.animator().alphaValue = 1
+        } completionHandler: { [weak self] in
+            MainActor.assumeIsolated {
+                self?.isDetailSliding = false
+            }
         }
     }
 
@@ -154,6 +160,7 @@ final class OverlayPanelController {
             return
         }
         isDetailVisible = false
+        isDetailSliding = false
         let compactFrame = compactFrame(attachedTo: chatGPTWindow)
         let collapsedFrame = collapsedDetailFrame(attachedTo: compactFrame)
 
