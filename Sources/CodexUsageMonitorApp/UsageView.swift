@@ -31,12 +31,16 @@ struct UsageView: View {
                     )
 
                 if presentation.isExpanded {
-                    detailBody
-                        .transition(
-                            .opacity.combined(
-                                with: .scale(scale: 0.94, anchor: .topTrailing)
-                            )
+                    VStack(spacing: 0) {
+                        Color.clear
+                            .frame(height: metrics.detailGap)
+                        detailBody
+                    }
+                    .transition(
+                        .opacity.combined(
+                            with: .scale(scale: 0.94, anchor: .topTrailing)
                         )
+                    )
                 }
             }
             .frame(
@@ -51,26 +55,39 @@ struct UsageView: View {
         .animation(.easeInOut(duration: 0.16), value: presentation.fontSize)
     }
 
-    @ViewBuilder
     private var surface: some View {
-        if presentation.isExpanded {
-            let shape = OverlayExtensionShape(
-                compactWidth: metrics.compactSize.width,
-                compactHeight: metrics.compactSize.height,
-                cornerRadius: metrics.cornerRadius
-            )
-            shape
-                .fill(Color(nsColor: .windowBackgroundColor))
-                .overlay {
-                    shape.stroke(
-                        Color(nsColor: .separatorColor).opacity(0.55),
-                        lineWidth: 1
+        ZStack(alignment: .topTrailing) {
+            if presentation.isExpanded {
+                RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
+                    .fill(Color(nsColor: .windowBackgroundColor))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
+                            .stroke(
+                                Color(nsColor: .separatorColor).opacity(0.55),
+                                lineWidth: 1
+                            )
+                    }
+                    .frame(
+                        width: metrics.detailPanelSize.width,
+                        height: metrics.detailPanelSize.height
                     )
-                }
-        } else {
+                    .frame(
+                        width: currentSize.width,
+                        height: currentSize.height,
+                        alignment: .bottom
+                    )
+                    .transition(
+                        .opacity.combined(
+                            with: .scale(scale: 0.94, anchor: .topTrailing)
+                        )
+                    )
+            }
+
             Rectangle()
                 .fill(Color(nsColor: .windowBackgroundColor))
+                .frame(width: metrics.compactSize.width, height: metrics.compactSize.height)
         }
+        .frame(width: currentSize.width, height: currentSize.height, alignment: .topTrailing)
     }
 
     private var compactStrip: some View {
@@ -128,15 +145,10 @@ struct UsageView: View {
     }
 
     private var detailBody: some View {
-        VStack(spacing: 0) {
-            Divider()
-                .padding(.horizontal, metrics.detailHorizontalPadding)
-
-            detailRows
-        }
+        detailRows
         .frame(
-            width: metrics.expandedSize.width,
-            height: metrics.expandedSize.height - metrics.compactSize.height,
+            width: metrics.detailPanelSize.width,
+            height: metrics.detailPanelSize.height,
             alignment: .top
         )
     }
@@ -197,52 +209,6 @@ struct UsageView: View {
             return "有效期未知"
         }
         return "有效期至 \(date.formatted(.dateTime.month().day().hour().minute()))"
-    }
-}
-
-private struct OverlayExtensionShape: Shape {
-    let compactWidth: CGFloat
-    let compactHeight: CGFloat
-    let cornerRadius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        let radius = min(cornerRadius, compactHeight / 2)
-        let stepX = rect.maxX - compactWidth
-        var path = Path()
-
-        path.move(to: CGPoint(x: stepX + radius, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX, y: rect.minY + radius),
-            control: CGPoint(x: rect.maxX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
-            control: CGPoint(x: rect.maxX, y: rect.maxY)
-        )
-        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX, y: rect.maxY - radius),
-            control: CGPoint(x: rect.minX, y: rect.maxY)
-        )
-        path.addLine(to: CGPoint(x: rect.minX, y: compactHeight + radius))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX + radius, y: compactHeight),
-            control: CGPoint(x: rect.minX, y: compactHeight)
-        )
-        path.addLine(to: CGPoint(x: stepX - radius, y: compactHeight))
-        path.addQuadCurve(
-            to: CGPoint(x: stepX, y: compactHeight - radius),
-            control: CGPoint(x: stepX, y: compactHeight)
-        )
-        path.addLine(to: CGPoint(x: stepX, y: rect.minY + radius))
-        path.addQuadCurve(
-            to: CGPoint(x: stepX + radius, y: rect.minY),
-            control: CGPoint(x: stepX, y: rect.minY)
-        )
-        path.closeSubpath()
-        return path
     }
 }
 
