@@ -20,7 +20,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     }
 
     public var compactSize: CGSize {
-        CGSize(width: scaled(250), height: scaled(32))
+        CGSize(width: scaled(278), height: scaled(32))
     }
 
     public var expandedSize: CGSize {
@@ -35,7 +35,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     public var iconSize: CGFloat { scaled(13) }
     public var iconWidth: CGFloat { scaled(15) }
     public var iconHeight: CGFloat { scaled(17) }
-    public var menuButtonSize: CGFloat { scaled(22) }
+    public var menuButtonSize: CGFloat { max(22, scaled(22)) }
     public var cornerRadius: CGFloat { scaled(14) }
     public var detailSpacing: CGFloat { scaled(10) }
     public var detailHorizontalPadding: CGFloat { scaled(18) }
