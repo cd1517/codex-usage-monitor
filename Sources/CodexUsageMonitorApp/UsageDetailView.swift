@@ -15,6 +15,9 @@ struct UsageDetailView: View {
 
     var body: some View {
         detailRows
+            // 弹出/收起时窗口高度做动画，fixedSize 让内容保持固有高度被窗口
+            // 裁切「揭开」，而不是被逐帧压缩再展开（视觉上的拉伸）
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .background {
                 RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
