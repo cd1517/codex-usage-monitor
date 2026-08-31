@@ -9,6 +9,7 @@ binary_path=$($project_root/scripts/build.sh release | tail -n 1)
 mkdir -p "$contents_path/MacOS" "$contents_path/Resources"
 install -m 755 "$binary_path" "$contents_path/MacOS/CodexUsageMonitor"
 install -m 644 "$project_root/Resources/Info.plist" "$contents_path/Info.plist"
+install -m 644 "$project_root/Resources/AppIcon.icns" "$contents_path/Resources/AppIcon.icns"
 
 plutil -lint "$contents_path/Info.plist"
 codesign --force --deep --sign - "$app_path"
