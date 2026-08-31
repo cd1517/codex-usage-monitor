@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="cd1517/codex-usage-monitor"
-DMG_URL="https://github.com/$REPO/releases/latest/download/Codex%20Usage%20Monitor.dmg"
+DMG_URL="https://github.com/$REPO/releases/latest/download/Codex.Usage.Monitor.dmg"
 APP_NAME="Codex Usage Monitor.app"
 INSTALL_DIR="/Applications"
 
