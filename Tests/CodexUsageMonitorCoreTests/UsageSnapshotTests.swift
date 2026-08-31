@@ -42,4 +42,9 @@ func runUsageSnapshotTests() throws {
     try expect(unavailableUsage.windows.map(\.remainingPercent) == [nil, nil], "missing windows must remain unavailable")
     try expect(unavailableUsage.windows.map(\.resetsAt) == [nil, nil], "missing reset times must remain unavailable")
     try expect(unavailableUsage.resetCreditsAvailable == nil, "missing reset credits must remain unavailable")
+
+    try expect(!isLowRemainingUsage(nil), "missing usage must not be shown as low")
+    try expect(isLowRemainingUsage(0), "zero remaining usage should be low")
+    try expect(isLowRemainingUsage(10), "ten percent remaining usage should be low")
+    try expect(!isLowRemainingUsage(11), "eleven percent remaining usage should not be low")
 }
