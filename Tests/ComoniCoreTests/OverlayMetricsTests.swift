@@ -36,11 +36,11 @@ func runOverlayMetricsTests() throws {
         "18pt should add only enough compact width for the native ellipsis control"
     )
     try expect(
-        defaultMetrics.expandedSize == CGSize(width: 304, height: 202),
+        defaultMetrics.expandedSize == CGSize(width: 268, height: 202),
         "18pt should include the fixed strip and four detail rows"
     )
     try expect(
-        defaultMetrics.detailPanelSize == CGSize(width: 304, height: 170),
+        defaultMetrics.detailPanelSize == CGSize(width: 268, height: 170),
         "the detail window should exclude the 32pt compact strip"
     )
     try expect(defaultMetrics.detailGap == 4, "the detail window should sit 4pt below the strip")
@@ -50,7 +50,7 @@ func runOverlayMetricsTests() throws {
         panelSize: defaultMetrics.expandedSize
     )
     try expect(
-        expandedFrame == CGRect(x: 776, y: 684, width: 304, height: 202),
+        expandedFrame == CGRect(x: 812, y: 684, width: 268, height: 202),
         "the expanded panel should grow left and down from the compact top-right anchor"
     )
     try expect(
