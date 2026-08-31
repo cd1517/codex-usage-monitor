@@ -88,6 +88,7 @@ struct UsageDetailView: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .gridCellAnchor(.leading)
         }
         .font(.system(size: metrics.fontSize))
