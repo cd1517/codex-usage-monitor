@@ -66,6 +66,8 @@ struct UsageDetailView: View {
             Text(value)
                 .fontWeight(valueWeight)
                 .monospacedDigit()
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             Spacer(minLength: 0)
         }
         .font(.system(size: metrics.fontSize))
