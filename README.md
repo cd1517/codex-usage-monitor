@@ -12,6 +12,16 @@
 - 用量每 60 秒刷新；也可点击菜单栏的闪电图标，选择“刷新用量”。
 - 退出时点击菜单栏闪电图标，选择“退出 Codex 用量浮窗”。
 
+## 安装
+
+终端一键安装（macOS 14+）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ManGo/codex-usage-monitor/main/scripts/install.sh | bash
+```
+
+或从 [Releases](https://github.com/ManGo/codex-usage-monitor/releases) 下载 DMG，拖入「应用程序」。
+
 ## 本地验证
 
 ```bash
