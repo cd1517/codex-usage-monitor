@@ -81,7 +81,6 @@ final class OverlayPanelController {
     }
 
     func show(attachedTo chatGPTWindow: CGRect, relativeTo chatGPTWindowNumber: Int) {
-        let targetChanged = self.chatGPTWindowNumber != chatGPTWindowNumber
         self.chatGPTWindow = chatGPTWindow
         self.chatGPTWindowNumber = chatGPTWindowNumber
         let compactFrame = compactFrame(attachedTo: chatGPTWindow)
@@ -94,9 +93,7 @@ final class OverlayPanelController {
                 detailPanel.setFrame(detailFrame, display: detailPanel.isVisible)
             }
         }
-        if !compactPanel.isVisible || targetChanged {
-            orderPanelsFront()
-        }
+        orderPanelsFront()
     }
 
     func setChatGPTFrontmost(_ isFrontmost: Bool) {

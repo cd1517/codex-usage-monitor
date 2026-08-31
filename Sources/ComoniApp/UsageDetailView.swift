@@ -80,13 +80,15 @@ struct UsageDetailView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .fixedSize(horizontal: true, vertical: false)
+                .gridCellAnchor(.leading)
             Color.clear
                 .frame(width: metrics.detailValueSpacing)
             Text(value)
                 .fontWeight(valueWeight)
                 .monospacedDigit()
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.6)
+                .gridCellAnchor(.leading)
         }
         .font(.system(size: metrics.fontSize))
     }
