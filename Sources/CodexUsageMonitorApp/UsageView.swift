@@ -53,15 +53,6 @@ struct UsageView: View {
                 onTrackingChange: presentation.setFontMenuOpen
             )
             .frame(width: metrics.menuButtonSize, height: metrics.menuButtonSize)
-            .background {
-                Circle()
-                    .fill(Color.primary.opacity(0.045))
-            }
-
-            Rectangle()
-                .fill(.secondary.opacity(0.45))
-                .frame(width: 1, height: metrics.iconHeight)
-                .opacity(presentation.isDetailVisible ? 0 : 1)
         }
         .padding(.leading, metrics.compactLeadingPadding)
         .padding(.trailing, metrics.compactTrailingPadding)

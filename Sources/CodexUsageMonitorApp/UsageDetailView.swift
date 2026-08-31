@@ -67,6 +67,8 @@ struct UsageDetailView: View {
         GridRow {
             Text(label)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             Spacer(minLength: metrics.detailValueSpacing)
             Text(value)
                 .fontWeight(valueWeight)
