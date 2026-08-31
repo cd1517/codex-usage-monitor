@@ -93,6 +93,7 @@ final class OverlayPanelController {
         pendingCollapse = nil
         isExpanded = false
         presentation.isExpanded = false
+        presentation.isHovering = false
         panel.hasShadow = false
         panel.orderOut(nil)
         chatGPTWindowNumber = nil
@@ -131,6 +132,7 @@ final class OverlayPanelController {
     private func handleHoverChange(_ isHovering: Bool) {
         pendingCollapse?.cancel()
         pendingCollapse = nil
+        presentation.isHovering = isHovering
 
         if isHovering {
             setExpanded(true)

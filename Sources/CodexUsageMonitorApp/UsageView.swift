@@ -29,6 +29,18 @@ struct UsageView: View {
                         width: metrics.compactSize.width,
                         height: metrics.compactSize.height
                     )
+                    .background {
+                        RoundedRectangle(
+                            cornerRadius: metrics.cornerRadius * 0.58,
+                            style: .continuous
+                        )
+                        .fill(Color.primary.opacity(0.055))
+                        .opacity(
+                            presentation.isHovering || presentation.isFontMenuOpen
+                                ? 1
+                                : 0
+                        )
+                    }
 
                 if presentation.isExpanded {
                     detailBody
@@ -48,6 +60,7 @@ struct UsageView: View {
         .frame(width: currentSize.width, height: currentSize.height, alignment: .topTrailing)
         .contentShape(Rectangle())
         .animation(morphAnimation, value: presentation.isExpanded)
+        .animation(.easeOut(duration: 0.1), value: presentation.isHovering)
         .animation(.easeInOut(duration: 0.16), value: presentation.fontSize)
     }
 
@@ -296,6 +309,7 @@ final class OverlayPresentation: ObservableObject {
     private static let fontSizeDefaultsKey = "usageOverlayFontSize"
 
     @Published var isExpanded = false
+    @Published var isHovering = false
     @Published private(set) var fontSize: Int
     @Published private(set) var isFontMenuOpen = false
 
