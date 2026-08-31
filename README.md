@@ -17,10 +17,10 @@
 终端一键安装（macOS 14+）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ManGo/codex-usage-monitor/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/cd1517/comoni/main/scripts/install.sh | bash
 ```
 
-或从 [Releases](https://github.com/ManGo/codex-usage-monitor/releases) 下载 DMG，拖入「应用程序」。
+或从 [Releases](https://github.com/cd1517/comoni/releases) 下载 DMG，拖入「应用程序」。
 
 ## 本地验证
 
