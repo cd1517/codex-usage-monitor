@@ -9,14 +9,8 @@ struct UsageView: View {
     @ObservedObject var viewModel: UsageViewModel
     @ObservedObject var presentation: OverlayPresentation
 
-    private let morphAnimation = Animation.easeInOut(duration: 0.22)
-
     private var metrics: OverlayMetrics {
         presentation.metrics
-    }
-
-    private var currentSize: CGSize {
-        presentation.isExpanded ? metrics.expandedSize : metrics.compactSize
     }
 
     var body: some View {
@@ -36,7 +30,8 @@ struct UsageView: View {
                         )
                         .fill(Color.primary.opacity(0.055))
                         .opacity(
-                            presentation.isHovering || presentation.isFontMenuOpen
+                            (presentation.isHovering || presentation.isFontMenuOpen)
+                                && !presentation.isExpanded
                                 ? 1
                                 : 0
                         )
@@ -44,22 +39,16 @@ struct UsageView: View {
 
                 if presentation.isExpanded {
                     detailBody
-                        .transition(
-                            .opacity.combined(
-                                with: .scale(scale: 0.94, anchor: .topTrailing)
-                            )
-                        )
                 }
             }
             .frame(
-                width: currentSize.width,
-                height: currentSize.height,
+                maxWidth: .infinity,
+                maxHeight: .infinity,
                 alignment: .topTrailing
             )
         }
-        .frame(width: currentSize.width, height: currentSize.height, alignment: .topTrailing)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
         .contentShape(Rectangle())
-        .animation(morphAnimation, value: presentation.isExpanded)
         .animation(.easeOut(duration: 0.1), value: presentation.isHovering)
         .animation(.easeInOut(duration: 0.16), value: presentation.fontSize)
     }
@@ -69,6 +58,10 @@ struct UsageView: View {
             if presentation.isExpanded {
                 RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
                     .fill(Color(nsColor: .windowBackgroundColor))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
+                            .fill(Color.primary.opacity(0.055))
+                    }
                     .overlay {
                         RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
                             .stroke(
@@ -81,7 +74,7 @@ struct UsageView: View {
                     .fill(Color(nsColor: .windowBackgroundColor))
             }
         }
-        .frame(width: currentSize.width, height: currentSize.height)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var compactStrip: some View {
