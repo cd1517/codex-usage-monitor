@@ -22,6 +22,7 @@ final class OverlayPanelController {
     private var isDetailSliding = false
     private var pendingCollapse: DispatchWorkItem?
     private var hoverReconcileTimer: Timer?
+    private var clickMonitors: [Any] = []
 
     init(viewModel: UsageViewModel) {
         let presentation = OverlayPresentation()
@@ -90,6 +91,27 @@ final class OverlayPanelController {
         }
         RunLoop.main.add(reconcileTimer, forMode: .common)
         hoverReconcileTimer = reconcileTimer
+
+        // 双保险：横条以外的任何鼠标按下都必须收回详情窗。全局监听覆盖
+        // 其他应用与桌面，本地监听覆盖状态栏图标和详情窗自身；仅横条豁免
+        //（···菜单在其中）。鼠标事件监听不需要辅助功能权限。
+        let clickMask: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+        clickMonitors = [
+            NSEvent.addGlobalMonitorForEvents(matching: clickMask) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.forceCollapseDetail()
+                }
+            },
+            NSEvent.addLocalMonitorForEvents(matching: clickMask) { [weak self] event in
+                MainActor.assumeIsolated {
+                    guard let self, event.window !== self.compactPanel else {
+                        return event
+                    }
+                    self.forceCollapseDetail()
+                    return event
+                }
+            }
+        ]
     }
 
     func show(attachedTo chatGPTWindow: CGRect, relativeTo chatGPTWindowNumber: Int) {
@@ -209,6 +231,19 @@ final class OverlayPanelController {
         isDetailHovering = isDetailVisible && detailPanel.isVisible
             && detailPanel.frame.contains(mouseLocation)
         updateHoverState()
+    }
+
+    /// 点击兜底：立即收回详情窗，不等 0.12s 收起延迟。
+    private func forceCollapseDetail() {
+        guard isDetailVisible, !presentation.isFontMenuOpen else {
+            return
+        }
+        pendingCollapse?.cancel()
+        pendingCollapse = nil
+        isCompactHovering = compactPanel.frame.contains(NSEvent.mouseLocation)
+        isDetailHovering = false
+        presentation.isHovering = isCompactHovering || presentation.isFontMenuOpen
+        hideDetail()
     }
 
     private func updateHoverState() {
