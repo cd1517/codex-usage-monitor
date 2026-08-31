@@ -187,6 +187,14 @@ private struct FontSizeMenuButton: NSViewRepresentable {
         private func rebuildMenu() {
             menu.removeAllItems()
             menu.title = parent.menuTitle
+            menu.addItem(fontSizeMenuItem())
+            menu.addItem(.separator())
+            menu.addItem(languageMenuItem())
+        }
+
+        private func fontSizeMenuItem() -> NSMenuItem {
+            let fontSizeMenu = NSMenu(title: parent.menuTitle)
+            fontSizeMenu.autoenablesItems = false
             for size in supportedOverlayFontSizes {
                 let item = NSMenuItem(
                     title: "\(size)pt",
@@ -196,10 +204,15 @@ private struct FontSizeMenuButton: NSViewRepresentable {
                 item.target = self
                 item.representedObject = size
                 item.state = size == parent.selectedSize ? .on : .off
-                menu.addItem(item)
+                fontSizeMenu.addItem(item)
             }
-            menu.addItem(.separator())
-            menu.addItem(languageMenuItem())
+            let fontSizeItem = NSMenuItem(
+                title: parent.menuTitle,
+                action: nil,
+                keyEquivalent: ""
+            )
+            fontSizeItem.submenu = fontSizeMenu
+            return fontSizeItem
         }
 
         private func languageMenuItem() -> NSMenuItem {
