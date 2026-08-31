@@ -7,6 +7,7 @@ struct ComoniCheck {
             let response = try CodexAppServerClient.resolved().readRateLimits()
             let usage = UsageDisplaySnapshot(response: response)
             let output: [String: Any] = [
+                "localeIdentifier": jsonValue(ChatGPTLanguageDetector.detect()),
                 "planType": jsonValue(usage.planType),
                 "remainingPercent": usage.windows.map { jsonValue($0.remainingPercent) },
                 "resetCreditsAvailable": jsonValue(usage.resetCreditsAvailable),

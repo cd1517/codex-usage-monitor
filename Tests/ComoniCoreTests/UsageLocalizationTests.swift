@@ -1,0 +1,60 @@
+import Foundation
+
+func runUsageLocalizationTests() throws {
+    let rendererArguments = [
+        ["/Applications/ChatGPT.app/Contents/MacOS/ChatGPT"],
+        ["Codex (Renderer)", "--type=renderer", "--lang=zh-CN", "--renderer-client-id=6"]
+    ]
+    try expect(
+        chatGPTLocaleIdentifier(from: rendererArguments) == "zh-CN",
+        "the ChatGPT renderer --lang value should be used as the UI locale"
+    )
+    try expect(
+        chatGPTLocaleIdentifier(from: [["Codex (Renderer)", "--type=renderer"]]) == nil,
+        "missing ChatGPT language data must not be invented"
+    )
+
+    let encodedArguments = makeProcessArgumentData([
+        "/Applications/ChatGPT.app/Contents/Frameworks/Codex (Renderer)",
+        "--type=renderer",
+        "--lang=en-US"
+    ])
+    try expect(
+        parseProcessArguments(encodedArguments).suffix(2) == ["--type=renderer", "--lang=en-US"],
+        "KERN_PROCARGS2 data should expose the renderer language argument"
+    )
+
+    let simplifiedChinese = UsageLocalization(localeIdentifier: "zh-CN")
+    try expect(simplifiedChinese.compactPrimaryLabel == "5小时", "Simplified Chinese should localize the compact label")
+    try expect(simplifiedChinese.primaryResetLabel == "5 小时重置", "Simplified Chinese should localize detail labels")
+    try expect(simplifiedChinese.resetCreditCount(1) == "1 次", "Chinese reset credits should include the 次 unit")
+
+    let traditionalChinese = UsageLocalization(localeIdentifier: "zh-TW")
+    try expect(traditionalChinese.compactSecondaryLabel == "1週", "Traditional Chinese should follow the ChatGPT locale")
+    try expect(traditionalChinese.resetCreditsLabel == "重置額度", "Traditional Chinese should use traditional characters")
+
+    let english = UsageLocalization(localeIdentifier: "en-US")
+    try expect(english.compactPrimaryLabel == "5h", "English should localize compact labels")
+    try expect(english.resetCreditCount(1) == "1 time", "English should use a singular count unit")
+    try expect(english.resetCreditCount(2) == "2 times", "English should use a plural count unit")
+
+    let japanese = UsageLocalization(localeIdentifier: "ja-JP")
+    try expect(japanese.primaryResetLabel == "5時間リセット", "Japanese should follow the ChatGPT locale")
+    try expect(japanese.resetCreditCount(2) == "2 回", "Japanese should localize the count unit")
+
+    let fallback = UsageLocalization(localeIdentifier: "unsupported")
+    try expect(fallback.compactPrimaryLabel == "5h", "unsupported locales should fall back to English")
+}
+
+private func makeProcessArgumentData(_ arguments: [String]) -> Data {
+    var argumentCount = Int32(arguments.count)
+    var data = withUnsafeBytes(of: &argumentCount) { Data($0) }
+    data.append(contentsOf: arguments[0].utf8)
+    data.append(0)
+    data.append(0)
+    for argument in arguments {
+        data.append(contentsOf: argument.utf8)
+        data.append(0)
+    }
+    return data
+}

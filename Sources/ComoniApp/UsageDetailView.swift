@@ -41,18 +41,29 @@ struct UsageDetailView: View {
             horizontalSpacing: 0,
             verticalSpacing: metrics.detailSpacing
         ) {
-            detailRow(label: "5 小时重置", value: dateText(windows[0].resetsAt))
-            detailRow(label: "1 周重置", value: dateText(windows[1].resetsAt))
+            detailRow(
+                label: presentation.localization.primaryResetLabel,
+                value: dateText(windows[0].resetsAt)
+            )
+            detailRow(
+                label: presentation.localization.secondaryResetLabel,
+                value: dateText(windows[1].resetsAt)
+            )
 
             Divider()
                 .gridCellColumns(3)
 
             detailRow(
-                label: "重置额度",
-                value: viewModel.snapshot?.resetCreditsAvailable.map(String.init) ?? "--",
+                label: presentation.localization.resetCreditsLabel,
+                value: presentation.localization.resetCreditCount(
+                    viewModel.snapshot?.resetCreditsAvailable
+                ),
                 valueWeight: .semibold
             )
-            detailRow(label: "有效期至", value: expiryDateText)
+            detailRow(
+                label: presentation.localization.resetCreditExpiryLabel,
+                value: expiryDateText
+            )
         }
         .padding(.horizontal, metrics.detailHorizontalPadding)
         .padding(.top, metrics.detailTopPadding)
@@ -68,8 +79,9 @@ struct UsageDetailView: View {
             Text(label)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .fixedSize(horizontal: true, vertical: false)
-            Spacer(minLength: metrics.detailValueSpacing)
+                .minimumScaleFactor(0.72)
+            Color.clear
+                .frame(width: metrics.detailValueSpacing)
             Text(value)
                 .fontWeight(valueWeight)
                 .monospacedDigit()
@@ -88,15 +100,29 @@ struct UsageDetailView: View {
 
     private func dateText(_ date: Date?) -> String {
         guard let date else {
-            return "不可用"
+            return presentation.localization.unavailableText
         }
-        return date.formatted(.dateTime.month().day().hour().minute())
+        return date.formatted(
+            .dateTime
+                .month()
+                .day()
+                .hour()
+                .minute()
+                .locale(Locale(identifier: presentation.localization.localeIdentifier))
+        )
     }
 
     private var expiryDateText: String {
         guard let date = viewModel.snapshot?.resetCreditExpiresAt else {
-            return "未知"
+            return presentation.localization.unknownText
         }
-        return date.formatted(.dateTime.month().day().hour().minute())
+        return date.formatted(
+            .dateTime
+                .month()
+                .day()
+                .hour()
+                .minute()
+                .locale(Locale(identifier: presentation.localization.localeIdentifier))
+        )
     }
 }

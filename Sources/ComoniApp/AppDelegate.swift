@@ -28,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.panelController.setChatGPTFrontmost(isFrontmost)
         }
         windowTracker.onActivation = { [weak self] in
+            self?.panelController.refreshLanguage()
             self?.viewModel.refresh()
         }
         windowTracker.start()
@@ -35,6 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
+                self?.panelController.refreshLanguage()
                 self?.viewModel.refresh()
             }
         }

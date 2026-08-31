@@ -109,6 +109,10 @@ final class OverlayPanelController {
         }
     }
 
+    func refreshLanguage() {
+        presentation.refreshLanguage()
+    }
+
     func hide() {
         pendingCollapse?.cancel()
         pendingCollapse = nil
