@@ -99,9 +99,6 @@ final class OverlayPanelController {
 
     func setChatGPTFrontmost(_ isFrontmost: Bool) {
         isChatGPTFrontmost = isFrontmost
-        let level: NSWindow.Level = isFrontmost ? .floating : .normal
-        compactPanel.level = level
-        detailPanel.level = level
         if compactPanel.isVisible {
             orderPanelsFront()
         }
@@ -285,6 +282,16 @@ final class OverlayPanelController {
     private func orderPanelsFront() {
         guard let chatGPTWindowNumber else {
             return
+        }
+        // 层级在每个 tick 断言而非仅在前台切换时设置：若横条不可见期间错过
+        // 前台切换，level 会停留旧值，ChatGPT 重排自身窗口后横条被压到底下，
+        // 只能靠用户点击其他窗口触发 level 重设才能恢复。
+        let level: NSWindow.Level = isChatGPTFrontmost ? .floating : .normal
+        if compactPanel.level != level {
+            compactPanel.level = level
+        }
+        if detailPanel.level != level {
+            detailPanel.level = level
         }
         if isChatGPTFrontmost {
             if isDetailVisible {
