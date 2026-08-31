@@ -18,7 +18,7 @@ struct UsageView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .background {
             RoundedRectangle(
-                cornerRadius: metrics.cornerRadius * 0.58,
+                cornerRadius: metrics.compactCornerRadius,
                 style: .continuous
             )
             .fill(Color.primary.opacity(0.055))
@@ -35,7 +35,10 @@ struct UsageView: View {
 
     private var compactStrip: some View {
         HStack(spacing: metrics.compactSpacing) {
-            compactValue(label: "5小时", value: windows[0].remainingPercent)
+            compactValue(
+                label: presentation.localization.compactPrimaryLabel,
+                value: windows[0].remainingPercent
+            )
 
             Image(systemName: "bolt.fill")
                 .font(.system(size: metrics.iconSize, weight: .regular))
@@ -43,7 +46,10 @@ struct UsageView: View {
                 .frame(width: metrics.iconWidth, height: metrics.iconHeight)
                 .padding(.horizontal, metrics.boltHorizontalPadding)
 
-            compactValue(label: "1周", value: windows[1].remainingPercent)
+            compactValue(
+                label: presentation.localization.compactSecondaryLabel,
+                value: windows[1].remainingPercent
+            )
 
             FontSizeMenuButton(
                 selectedSize: presentation.fontSize,
@@ -185,16 +191,23 @@ final class OverlayPresentation: ObservableObject {
     @Published var isDetailVisible = false
     @Published private(set) var fontSize: Int
     @Published private(set) var isFontMenuOpen = false
+    @Published private(set) var localization: UsageLocalization
 
     var onFontSizeChange: (() -> Void)?
     var onMenuTrackingChange: ((Bool) -> Void)?
 
     private let userDefaults: UserDefaults
 
-    init(userDefaults: UserDefaults = .standard) {
+    init(
+        userDefaults: UserDefaults = .standard,
+        localeIdentifier: String? = ChatGPTLanguageDetector.detect()
+    ) {
         self.userDefaults = userDefaults
         let storedSize = (userDefaults.object(forKey: Self.fontSizeDefaultsKey) as? NSNumber)?.intValue
         fontSize = normalizedOverlayFontSize(storedSize)
+        localization = UsageLocalization(
+            localeIdentifier: localeIdentifier ?? Locale.preferredLanguages.first ?? "en-US"
+        )
     }
 
     var metrics: OverlayMetrics {
@@ -217,5 +230,16 @@ final class OverlayPresentation: ObservableObject {
         }
         isFontMenuOpen = isOpen
         onMenuTrackingChange?(isOpen)
+    }
+
+    func refreshLanguage() {
+        guard let localeIdentifier = ChatGPTLanguageDetector.detect() else {
+            return
+        }
+        let detected = UsageLocalization(localeIdentifier: localeIdentifier)
+        guard detected != localization else {
+            return
+        }
+        localization = detected
     }
 }

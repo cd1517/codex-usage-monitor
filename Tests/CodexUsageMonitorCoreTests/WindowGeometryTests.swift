@@ -61,7 +61,7 @@ func runWindowGeometryTests() throws {
         chatGPTWindow: CGRect(x: 100, y: 100, width: 1200, height: 800),
         panelSize: CGSize(width: 250, height: 32)
     )
-    try expect(frame == CGRect(x: 830, y: 854, width: 250, height: 32), "strip should align vertically with the native Share controls")
+    try expect(frame == CGRect(x: 830, y: 860, width: 250, height: 32), "strip top should align with the native Share background")
 
     let narrowFrame = overlayFrame(
         chatGPTWindow: CGRect(x: 100, y: 100, width: 400, height: 600),
@@ -85,19 +85,19 @@ func runWindowGeometryTests() throws {
     let detailFrame = detailOverlayFrame(
         compactFrame: frame,
         detailSize: CGSize(width: 278, height: 154),
-        gap: 4
+        gap: 12
     )
     try expect(
-        detailFrame == CGRect(x: 802, y: 696, width: 278, height: 154),
-        "the independent detail window should align right and sit below the fixed strip"
+        detailFrame == CGRect(x: 802, y: 694, width: 278, height: 154),
+        "the detail window top should align with the native title-bar bottom"
     )
     let collapsedDetailFrame = collapsedDetailOverlayFrame(
         compactFrame: frame,
         detailSize: CGSize(width: 278, height: 154),
-        gap: 4
+        gap: 12
     )
     try expect(
-        collapsedDetailFrame == CGRect(x: 802, y: 849, width: 278, height: 1),
+        collapsedDetailFrame == CGRect(x: 802, y: 847, width: 278, height: 1),
         "the detail window should start at one point high and expand only downward"
     )
     try expect(

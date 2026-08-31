@@ -7,6 +7,7 @@ struct TestMain {
             ("UsageSnapshotTests", runUsageSnapshotTests),
             ("OverlayMetricsTests", runOverlayMetricsTests),
             ("WindowGeometryTests", runWindowGeometryTests),
+            ("UsageLocalizationTests", runUsageLocalizationTests),
             ("AppServerProtocolTests", runAppServerProtocolTests),
             ("ExecutableResolverTests", runExecutableResolverTests)
         ]
