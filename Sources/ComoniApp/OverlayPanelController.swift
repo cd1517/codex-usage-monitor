@@ -12,6 +12,7 @@ final class OverlayPanelController {
     private let panel: NSPanel
     private let presentation: OverlayPresentation
     private var chatGPTWindow: CGRect?
+    private var chatGPTWindowNumber: Int?
     private var isExpanded = false
     private var pendingCollapse: DispatchWorkItem?
 
@@ -34,7 +35,7 @@ final class OverlayPanelController {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
-        panel.level = .floating
+        panel.level = .normal
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         panel.hidesOnDeactivate = false
         panel.ignoresMouseEvents = false
@@ -54,15 +55,24 @@ final class OverlayPanelController {
         }
     }
 
-    func show(attachedTo chatGPTWindow: CGRect) {
+    func show(attachedTo chatGPTWindow: CGRect, relativeTo chatGPTWindowNumber: Int) {
+        let targetChanged = self.chatGPTWindowNumber != chatGPTWindowNumber
         self.chatGPTWindow = chatGPTWindow
+        self.chatGPTWindowNumber = chatGPTWindowNumber
         let frame = targetFrame(attachedTo: chatGPTWindow)
         if panel.frame != frame {
             panel.setFrame(frame, display: panel.isVisible)
         }
-        if !panel.isVisible {
-            panel.orderFrontRegardless()
+        if !panel.isVisible || targetChanged {
+            panel.order(.above, relativeTo: chatGPTWindowNumber)
         }
+    }
+
+    func setChatGPTFrontmost(_ isFrontmost: Bool) {
+        guard isFrontmost, panel.isVisible, let chatGPTWindowNumber else {
+            return
+        }
+        panel.order(.above, relativeTo: chatGPTWindowNumber)
     }
 
     func hide() {
@@ -72,6 +82,7 @@ final class OverlayPanelController {
         presentation.isExpanded = false
         panel.hasShadow = false
         panel.orderOut(nil)
+        chatGPTWindowNumber = nil
     }
 
     private func setExpanded(_ expanded: Bool) {

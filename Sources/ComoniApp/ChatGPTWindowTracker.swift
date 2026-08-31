@@ -5,87 +5,153 @@ import CoreGraphics
 import ComoniCore
 #endif
 
+struct TrackedChatGPTWindow {
+    let frame: CGRect
+    let windowNumber: Int
+}
+
 @MainActor
 final class ChatGPTWindowTracker {
-    private static let trackingInterval: TimeInterval = 1.0 / 60.0
+    private static let foregroundTrackingInterval: TimeInterval = 1.0 / 60.0
+    private static let backgroundTrackingInterval: TimeInterval = 0.25
 
     private let targetBundleID = "com.openai.codex"
-    private var observer: NSObjectProtocol?
+    private var observers: [NSObjectProtocol] = []
     private var timer: Timer?
+    private var timerInterval: TimeInterval?
     private var activePID: pid_t?
     private var trackedWindowID: CGWindowID?
-    private var wasActive = false
+    private var wasFrontmost = false
 
-    var onWindowFrame: ((CGRect?) -> Void)?
+    var onWindowChange: ((TrackedChatGPTWindow?) -> Void)?
     var onActivation: (() -> Void)?
+    var onFrontmostChange: ((Bool) -> Void)?
 
     func start() {
-        observer = NSWorkspace.shared.notificationCenter.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.updateFrontmostApplication()
+        let notificationCenter = NSWorkspace.shared.notificationCenter
+        let notificationNames: [Notification.Name] = [
+            NSWorkspace.didActivateApplicationNotification,
+            NSWorkspace.didLaunchApplicationNotification,
+            NSWorkspace.didTerminateApplicationNotification
+        ]
+        observers = notificationNames.map { name in
+            notificationCenter.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.updateTrackedApplication()
+                }
             }
         }
-        updateFrontmostApplication()
+        updateTrackedApplication()
     }
 
     func stop() {
-        if let observer {
-            NSWorkspace.shared.notificationCenter.removeObserver(observer)
+        let notificationCenter = NSWorkspace.shared.notificationCenter
+        for observer in observers {
+            notificationCenter.removeObserver(observer)
         }
-        observer = nil
+        observers.removeAll()
+        updateFrontmostState(false)
         stopTracking()
     }
 
-    private func updateFrontmostApplication() {
-        guard let app = NSWorkspace.shared.frontmostApplication,
-              app.bundleIdentifier == targetBundleID else {
-            wasActive = false
+    private func updateTrackedApplication() {
+        guard let app = NSRunningApplication.runningApplications(
+            withBundleIdentifier: targetBundleID
+        ).first(where: { !$0.isTerminated }) else {
+            updateFrontmostState(false)
             stopTracking()
-            onWindowFrame?(nil)
+            onWindowChange?(nil)
             return
         }
 
-        activePID = app.processIdentifier
-        if !wasActive {
-            wasActive = true
-            onActivation?()
+        if activePID != app.processIdentifier {
+            activePID = app.processIdentifier
+            trackedWindowID = nil
         }
-        if timer == nil {
-            let timer = Timer(timeInterval: Self.trackingInterval, repeats: true) { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.refreshWindowFrame()
-                }
-            }
-            RunLoop.main.add(timer, forMode: .common)
-            self.timer = timer
-        }
+        let isFrontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier
+        updateFrontmostState(isFrontmost)
+        configureTrackingTimer(isFrontmost: isFrontmost)
         refreshWindowFrame()
     }
 
     private func stopTracking() {
         timer?.invalidate()
         timer = nil
+        timerInterval = nil
         activePID = nil
         trackedWindowID = nil
     }
 
+    private func configureTrackingTimer(isFrontmost: Bool) {
+        let interval = isFrontmost
+            ? Self.foregroundTrackingInterval
+            : Self.backgroundTrackingInterval
+        guard timer == nil || timerInterval != interval else {
+            return
+        }
+
+        timer?.invalidate()
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.trackingTimerFired()
+            }
+        }
+        timer.tolerance = isFrontmost ? 0.001 : 0.05
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
+        timerInterval = interval
+    }
+
+    private func trackingTimerFired() {
+        guard let activePID,
+              let app = NSRunningApplication(processIdentifier: activePID),
+              !app.isTerminated else {
+            updateTrackedApplication()
+            return
+        }
+
+        let isFrontmost = NSWorkspace.shared.frontmostApplication?.processIdentifier == activePID
+        guard isFrontmost == wasFrontmost else {
+            updateTrackedApplication()
+            return
+        }
+        refreshWindowFrame()
+    }
+
+    private func updateFrontmostState(_ isFrontmost: Bool) {
+        guard isFrontmost != wasFrontmost else {
+            return
+        }
+        wasFrontmost = isFrontmost
+        onFrontmostChange?(isFrontmost)
+        if isFrontmost {
+            onActivation?()
+        }
+    }
+
     private func refreshWindowFrame() {
-        guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == targetBundleID,
-              let activePID else {
-            updateFrontmostApplication()
+        guard let activePID,
+              let app = NSRunningApplication(processIdentifier: activePID),
+              !app.isTerminated else {
+            updateTrackedApplication()
             return
         }
 
         guard let window = primaryWindowDescriptor(ownerPID: activePID),
               let appKitBounds = convertWindowBounds(window.bounds, displays: displayDescriptors()) else {
-            onWindowFrame?(nil)
+            onWindowChange?(nil)
             return
         }
-        onWindowFrame?(appKitBounds)
+        onWindowChange?(
+            TrackedChatGPTWindow(
+                frame: appKitBounds,
+                windowNumber: Int(window.windowID)
+            )
+        )
     }
 
     private func primaryWindowDescriptor(ownerPID: pid_t) -> WindowDescriptor? {

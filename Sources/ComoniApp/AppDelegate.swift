@@ -11,15 +11,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureStatusItem()
 
-        windowTracker.onWindowFrame = { [weak self] frame in
+        windowTracker.onWindowChange = { [weak self] window in
             guard let self else {
                 return
             }
-            if let frame {
-                self.panelController.show(attachedTo: frame)
+            if let window {
+                self.panelController.show(
+                    attachedTo: window.frame,
+                    relativeTo: window.windowNumber
+                )
             } else {
                 self.panelController.hide()
             }
+        }
+        windowTracker.onFrontmostChange = { [weak self] isFrontmost in
+            self?.panelController.setChatGPTFrontmost(isFrontmost)
         }
         windowTracker.onActivation = { [weak self] in
             self?.viewModel.refresh()
