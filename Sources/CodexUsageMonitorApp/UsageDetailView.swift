@@ -55,15 +55,11 @@ struct UsageDetailView: View {
                 ),
                 valueWeight: .semibold
             )
-            .padding(.top, metrics.detailSectionExtra)
             .overlay(alignment: .top) {
                 Rectangle()
                     .fill(Color(nsColor: .separatorColor))
                     .frame(height: 1)
-                    .offset(
-                        y: metrics.detailSectionExtra
-                            - (metrics.detailSpacing + metrics.detailSectionExtra) / 2
-                    )
+                    .offset(y: -metrics.detailSpacing / 2)
             }
 
             detailRow(
