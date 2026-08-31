@@ -24,7 +24,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     }
 
     public var expandedSize: CGSize {
-        CGSize(width: scaled(304), height: compactSize.height + scaled(170))
+        CGSize(width: scaled(268), height: compactSize.height + scaled(170))
     }
 
     public var detailPanelSize: CGSize {
