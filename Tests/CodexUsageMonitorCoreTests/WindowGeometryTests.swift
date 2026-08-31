@@ -15,17 +15,29 @@ func runWindowGeometryTests() throws {
         selectPrimaryWindowDescriptor(from: windows, ownerPID: 42)?.windowID == 102,
         "primary-window discovery should preserve the window ID for low-latency frame tracking"
     )
-    let cachedWindow = WindowDescriptor(
+    let backgroundVisibleWindow = WindowDescriptor(
         windowID: 102,
         ownerPID: 42,
-        layer: 2,
-        isOnscreen: false,
-        alpha: 0,
+        layer: 0,
+        isOnscreen: true,
+        alpha: 1,
         bounds: CGRect(x: 50, y: 60, width: 1200, height: 800)
     )
     try expect(
-        selectTrackedWindowDescriptor(from: [cachedWindow], ownerPID: 42)?.windowID == 102,
-        "a cached window ID should remain trackable while transient description flags change"
+        selectTrackedWindowDescriptor(from: [backgroundVisibleWindow], ownerPID: 42)?.windowID == 102,
+        "a visible background main window should remain trackable"
+    )
+    let minimizedWindow = WindowDescriptor(
+        windowID: 102,
+        ownerPID: 42,
+        layer: 0,
+        isOnscreen: false,
+        alpha: 1,
+        bounds: CGRect(x: 50, y: 60, width: 1200, height: 800)
+    )
+    try expect(
+        selectTrackedWindowDescriptor(from: [minimizedWindow], ownerPID: 42) == nil,
+        "a minimized cached window should no longer keep the overlay visible"
     )
 
     let invalidWindows = [

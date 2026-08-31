@@ -55,9 +55,7 @@ public func selectTrackedWindowDescriptor(
     ownerPID: pid_t
 ) -> WindowDescriptor? {
     windows.first {
-        $0.ownerPID == ownerPID
-            && $0.bounds.width > 0
-            && $0.bounds.height > 0
+        isPrimaryWindowCandidate($0, ownerPID: ownerPID) && $0.isOnscreen
     }
 }
 
