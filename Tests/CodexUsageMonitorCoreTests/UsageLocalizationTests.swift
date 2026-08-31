@@ -27,11 +27,13 @@ func runUsageLocalizationTests() throws {
     let simplifiedChinese = UsageLocalization(localeIdentifier: "zh-CN")
     try expect(simplifiedChinese.compactPrimaryLabel == "5小时", "Simplified Chinese should localize the compact label")
     try expect(simplifiedChinese.primaryResetLabel == "5 小时重置", "Simplified Chinese should localize detail labels")
-    try expect(simplifiedChinese.resetCreditCount(1) == "1 次", "Chinese reset credits should include the 次 unit")
+    try expect(simplifiedChinese.resetCreditsLabel == "限额重置", "Simplified Chinese should rename the reset credits label")
+    try expect(simplifiedChinese.resetCreditCount(1) == "可用 1 次", "Chinese reset credits should read 可用 N 次")
 
     let traditionalChinese = UsageLocalization(localeIdentifier: "zh-TW")
     try expect(traditionalChinese.compactSecondaryLabel == "1週", "Traditional Chinese should follow the ChatGPT locale")
-    try expect(traditionalChinese.resetCreditsLabel == "重置額度", "Traditional Chinese should use traditional characters")
+    try expect(traditionalChinese.resetCreditsLabel == "限額重置", "Traditional Chinese should use traditional characters")
+    try expect(traditionalChinese.resetCreditCount(2) == "可用 2 次", "Traditional Chinese should read 可用 N 次")
 
     let english = UsageLocalization(localeIdentifier: "en-US")
     try expect(english.compactPrimaryLabel == "5h", "English should localize compact labels")
