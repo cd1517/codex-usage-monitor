@@ -27,15 +27,6 @@ public struct OverlayMetrics: Equatable, Sendable {
         CGSize(width: scaled(360), height: scaled(170))
     }
 
-    public var detailGap: CGFloat { scaled(6) }
-
-    public var detailPanelSize: CGSize {
-        CGSize(
-            width: expandedSize.width,
-            height: expandedSize.height - compactSize.height - detailGap
-        )
-    }
-
     public var compactSpacing: CGFloat { scaled(7) }
     public var compactValueSpacing: CGFloat { scaled(8) }
     public var compactLeadingPadding: CGFloat { scaled(9) }

@@ -31,16 +31,12 @@ struct UsageView: View {
                     )
 
                 if presentation.isExpanded {
-                    VStack(spacing: 0) {
-                        Color.clear
-                            .frame(height: metrics.detailGap)
-                        detailBody
-                    }
-                    .transition(
-                        .opacity.combined(
-                            with: .scale(scale: 0.94, anchor: .topTrailing)
+                    detailBody
+                        .transition(
+                            .opacity.combined(
+                                with: .scale(scale: 0.94, anchor: .topTrailing)
+                            )
                         )
-                    )
                 }
             }
             .frame(
@@ -56,7 +52,7 @@ struct UsageView: View {
     }
 
     private var surface: some View {
-        ZStack(alignment: .topTrailing) {
+        Group {
             if presentation.isExpanded {
                 RoundedRectangle(cornerRadius: metrics.cornerRadius, style: .continuous)
                     .fill(Color(nsColor: .windowBackgroundColor))
@@ -67,27 +63,12 @@ struct UsageView: View {
                                 lineWidth: 1
                             )
                     }
-                    .frame(
-                        width: metrics.detailPanelSize.width,
-                        height: metrics.detailPanelSize.height
-                    )
-                    .frame(
-                        width: currentSize.width,
-                        height: currentSize.height,
-                        alignment: .bottom
-                    )
-                    .transition(
-                        .opacity.combined(
-                            with: .scale(scale: 0.94, anchor: .topTrailing)
-                        )
-                    )
+            } else {
+                Rectangle()
+                    .fill(Color(nsColor: .windowBackgroundColor))
             }
-
-            Rectangle()
-                .fill(Color(nsColor: .windowBackgroundColor))
-                .frame(width: metrics.compactSize.width, height: metrics.compactSize.height)
         }
-        .frame(width: currentSize.width, height: currentSize.height, alignment: .topTrailing)
+        .frame(width: currentSize.width, height: currentSize.height)
     }
 
     private var compactStrip: some View {
@@ -145,10 +126,14 @@ struct UsageView: View {
     }
 
     private var detailBody: some View {
-        detailRows
+        VStack(spacing: 0) {
+            Divider()
+                .padding(.horizontal, metrics.detailHorizontalPadding)
+            detailRows
+        }
         .frame(
-            width: metrics.detailPanelSize.width,
-            height: metrics.detailPanelSize.height,
+            width: metrics.expandedSize.width,
+            height: metrics.expandedSize.height - metrics.compactSize.height,
             alignment: .top
         )
     }
