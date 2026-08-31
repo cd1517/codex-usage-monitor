@@ -37,6 +37,8 @@ func runUsageLocalizationTests() throws {
 
     let english = UsageLocalization(localeIdentifier: "en-US")
     try expect(english.compactPrimaryLabel == "5h", "English should localize compact labels")
+    try expect(english.primaryResetLabel == "5h reset", "English detail labels should stay short so label and value keep a gap")
+    try expect(english.secondaryResetLabel == "1wk reset", "English detail labels should follow the compact 5h/1wk wording")
     try expect(english.resetCreditCount(1) == "1 time", "English should use a singular count unit")
     try expect(english.resetCreditCount(2) == "2 times", "English should use a plural count unit")
 
