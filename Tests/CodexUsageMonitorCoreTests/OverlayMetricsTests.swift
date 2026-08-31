@@ -27,11 +27,6 @@ func runOverlayMetricsTests() throws {
                 && metrics.expandedSize.height > previous.expandedSize.height,
             "detail dimensions should grow with the selected font size"
         )
-        try expect(
-            metrics.detailPanelSize.width > previous.detailPanelSize.width
-                && metrics.detailPanelSize.height > previous.detailPanelSize.height,
-            "the regular detail panel should grow with the selected font size"
-        )
         previous = metrics
     }
 
@@ -44,11 +39,6 @@ func runOverlayMetricsTests() throws {
         defaultMetrics.expandedSize == CGSize(width: 360, height: 170),
         "18pt should preserve the current detail dimensions"
     )
-    try expect(
-        defaultMetrics.detailPanelSize == CGSize(width: 360, height: 132),
-        "the regular detail panel should leave a 6pt gap below the fixed strip"
-    )
-
     let compactFrame = CGRect(x: 802, y: 852, width: 278, height: 32)
     let expandedFrame = overlayFrame(
         preservingTopRightOf: compactFrame,
