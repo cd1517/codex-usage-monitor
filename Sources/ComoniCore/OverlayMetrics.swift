@@ -50,7 +50,7 @@ public struct OverlayMetrics: Equatable, Sendable {
     public var cornerRadius: CGFloat { scaled(14) }
     public var detailSpacing: CGFloat { scaled(10) }
     public var detailValueSpacing: CGFloat { scaled(8) }
-    public var detailHorizontalPadding: CGFloat { scaled(10) }
+    public var detailHorizontalPadding: CGFloat { scaled(14) }
     public var detailTopPadding: CGFloat { scaled(12) }
     public var detailBottomPadding: CGFloat { scaled(13) }
 
