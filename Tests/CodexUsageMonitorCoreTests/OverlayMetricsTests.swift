@@ -18,9 +18,16 @@ func runOverlayMetricsTests() throws {
     for size in 15...20 {
         let metrics = OverlayMetrics(fontSize: size)
         try expect(
-            metrics.compactSize.width > previous.compactSize.width
-                && metrics.compactSize.height > previous.compactSize.height,
-            "compact dimensions should grow with the selected font size"
+            metrics.compactSize.width > previous.compactSize.width,
+            "compact width should grow with the selected font size"
+        )
+        try expect(
+            metrics.compactSize.height == 36,
+            "compact background height must stay equal to the native Share background"
+        )
+        try expect(
+            metrics.compactCornerRadius == 12,
+            "compact background radius must stay equal to the native Share background"
         )
         try expect(
             metrics.expandedSize.width > previous.expandedSize.width
@@ -32,29 +39,29 @@ func runOverlayMetricsTests() throws {
 
     let defaultMetrics = OverlayMetrics(fontSize: 18)
     try expect(
-        defaultMetrics.compactSize == CGSize(width: 278, height: 32),
-        "18pt should add only enough compact width for the native ellipsis control"
+        defaultMetrics.compactSize == CGSize(width: 278, height: 36),
+        "18pt should use the native Share background height"
     )
     try expect(
-        defaultMetrics.expandedSize == CGSize(width: 278, height: 186),
+        defaultMetrics.expandedSize == CGSize(width: 278, height: 190),
         "18pt should include the fixed strip and four detail rows"
     )
     try expect(
         defaultMetrics.detailPanelSize == CGSize(width: 278, height: 154),
-        "the detail window should exclude the 32pt compact strip"
+        "the detail window should exclude the 36pt compact strip"
     )
     try expect(
-        defaultMetrics.compactCornerRadius == 16,
-        "the compact strip should use a pill radius matching the native Share control"
+        defaultMetrics.compactCornerRadius == 12,
+        "the compact strip should use the same rounded-rectangle radius as Share"
     )
     try expect(defaultMetrics.detailGap == 12, "the detail window should align with the native title-bar bottom")
-    let compactFrame = CGRect(x: 802, y: 860, width: 278, height: 32)
+    let compactFrame = CGRect(x: 802, y: 856, width: 278, height: 36)
     let expandedFrame = overlayFrame(
         preservingTopRightOf: compactFrame,
         panelSize: defaultMetrics.expandedSize
     )
     try expect(
-        expandedFrame == CGRect(x: 802, y: 706, width: 278, height: 186),
+        expandedFrame == CGRect(x: 802, y: 702, width: 278, height: 190),
         "the expanded panel should grow left and down from the compact top-right anchor"
     )
     try expect(
