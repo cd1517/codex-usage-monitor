@@ -10,6 +10,8 @@
     <string>Comoni</string>
     <key>CFBundleIdentifier</key>
     <string>com.cd1517.comoni</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
