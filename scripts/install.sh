@@ -20,6 +20,7 @@ mkdir -p "$mount_dir"
 hdiutil attach "$tmp/app.dmg" -readonly -nobrowse -mountpoint "$mount_dir" >/dev/null
 
 echo "==> 安装到 $INSTALL_DIR"
+rm -rf "$INSTALL_DIR/$APP_NAME"
 if [ -w "$INSTALL_DIR" ]; then
     cp -R "$mount_dir/$APP_NAME" "$INSTALL_DIR/"
 else
